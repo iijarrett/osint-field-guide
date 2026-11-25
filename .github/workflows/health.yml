@@ -1,0 +1,46 @@
+name: Tool health
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"   # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Check links and repositories
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/health_check.py --report health-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: health-report.md
+      - name: Open, update or close the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FINDINGS: ${{ steps.check.outputs.findings }}
+        run: |
+          title="Tool health report"
+          num=$(gh issue list --state open --label tool-health --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ "${FINDINGS:-0}" -gt 0 ]; then
+            if [ -n "$num" ]; then
+              gh issue edit "$num" --body-file health-report.md
+            else
+              gh label create tool-health --description "Automated tool health findings" --color D93F0B 2>/dev/null || true
+              gh issue create --title "$title" --label tool-health --body-file health-report.md
+            fi
+          elif [ -n "$num" ]; then
+            gh issue close "$num" --comment "The latest check found nothing to fix."
+          fi

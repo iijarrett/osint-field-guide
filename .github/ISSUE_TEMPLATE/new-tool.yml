@@ -1,0 +1,43 @@
+name: Suggest a tool
+description: Propose a tool for the guide. Read the inclusion bar in CONTRIBUTING.md first.
+labels: [new-tool]
+body:
+  - type: input
+    id: tool
+    attributes:
+      label: Tool and link
+      placeholder: ExampleTool, https://example.com
+    validations:
+      required: true
+  - type: textarea
+    id: job
+    attributes:
+      label: The job it does
+      description: What can you find or check with it that the current entries cannot?
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: Why it belongs next to (or instead of) the existing entry
+      description: Name the entry it overlaps with, if any, and what this one does better.
+  - type: textarea
+    id: install
+    attributes:
+      label: Install lines
+      description: Windows, macOS and Linux, if it needs installing. Say which you actually ran.
+      render: sh
+  - type: textarea
+    id: status
+    attributes:
+      label: Maintenance, price and ethics
+      description: Last release date, free or paid, and any way it could be used to harm a person.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Checks
+      options:
+        - label: I have no financial relationship with this tool, or I have stated it above.
+          required: true

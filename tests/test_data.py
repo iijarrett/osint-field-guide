@@ -1,0 +1,59 @@
+import copy
+import re
+
+import pytest
+
+from osintlib import load, real_tools, validate
+
+
+@pytest.fixture(scope="module")
+def data():
+    return load()
+
+
+def test_data_validates(data):
+    assert validate(*data) == []
+
+
+def test_ids_unique(data):
+    ids = [t["id"] for t in data[1]]
+    assert len(ids) == len(set(ids))
+
+
+def test_every_section_has_content(data):
+    sections, tools, skips = data
+    used = {t["section"] for t in tools}
+    for s in sections:
+        if s["id"].endswith("skip"):
+            assert skips
+        else:
+            assert s["id"] in used, "section %s has no tools" % s["id"]
+
+
+def test_no_piped_installers(data):
+    for t in data[1]:
+        for row in t.get("install", []) or []:
+            assert not re.search(r"\|\s*(ba)?sh\b", row.get("cmd", "")), t["id"]
+
+
+def test_no_private_references(data):
+    text = repr(data)
+    for term in ("Analyst Bench", "OpSec Field Guide", "Privacy & Anonymity Guide"):
+        assert term not in text
+
+
+@pytest.mark.parametrize("mutate,fragment", [
+    (lambda t: t[0].pop("summary"), "missing summary"),
+    (lambda t: t[1].update(id=t[0]["id"]), "duplicate tool id"),
+    (lambda t: t[1].update(section="nope"), "unknown section"),
+    (lambda t: t[12].update(tier="best"), "tier must be"),
+    (lambda t: t[12].update(links=[{"label": "x", "url": "http://example.com"}]), "must be https"),
+    (lambda t: t[12].update(install=[{"os": "All OS", "cmd": "curl https://x.sh | bash"}]), "piped-to-shell"),
+    (lambda t: t[12].update(github="not a repo"), "owner/repo"),
+    (lambda t: t[12].update(verified={"date": "yesterday"}), "YYYY-MM-DD"),
+])
+def test_validator_catches_problems(data, mutate, fragment):
+    sections, tools, skips = copy.deepcopy(data)
+    mutate(tools)
+    errs = validate(sections, tools, skips)
+    assert any(fragment in e for e in errs), errs

@@ -1,0 +1,33 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Validate data
+        run: python scripts/validate.py
+      - name: Generated files are up to date
+        run: python scripts/build_readme.py --check
+      - name: Tests
+        run: python -m pytest -q
+      - name: Command-line reader installs and runs
+        run: |
+          pip install .
+          osint-guide --version
+          osint-guide show maigret --os linux
+          osint-guide list --tier gated

@@ -1,0 +1,2490 @@
+- id: bench-vm
+  name: A research VM or a clean browser profile
+  section: 00-bench-and-loop
+  kind: free · practice · one-time
+  tier: deeper
+  summary: A disposable VM or a clean browser profile to run everything from.
+  what: >-
+    A disposable machine — a Kali or Ubuntu VM you can snapshot and throw away — or, at the very least,
+    a separate browser profile that never signs in to anything personal. Every tool on this guide runs
+    from here.
+  why: >-
+    *Why first:* a snapshot means a misbehaving tool costs you a revert instead of a reinstall, and nothing
+    you touch can be tied back to your real accounts.
+  install:
+  - os: Windows
+    cmd: winget install Oracle.VirtualBox
+  - os: macOS
+    cmd: brew install --cask utm
+    note: (Apple silicon) or brew install --cask virtualbox (Intel)
+  - os: Linux
+    cmd: sudo apt install virtualbox
+  - os: Then
+    note: import a Kali VM image from kali.org/get-kali, take a snapshot, work from the copy
+  - os: Profile
+    cmd: firefox -P
+    note: (profile manager — make one profile per research identity)
+  notes:
+  - >-
+    Windows and apt names were not machine-checked; Homebrew names were. If one fails, `winget search
+    virtualbox` or `apt search virtualbox` gives the current name.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: bench-tools
+  name: 'Shared prerequisites: Python, pipx, Go, Git, Docker'
+  section: 00-bench-and-loop
+  kind: free · local tools · one-time
+  tier: deeper
+  summary: One-time setup of Python, pipx, Go, Git and Docker so every later install is a one-liner.
+  what: >-
+    Almost every local tool in this guide installs through one of four routes: `pipx` for Python tools,
+    `go install` for Go tools, `git clone` for projects that ship as source, and Docker for anything with
+    a web service. Set all four up once and the per-tool lines below become one-liners.
+  why: >-
+    *Why pipx and not pip:* it puts each tool in its own isolated environment, so one tool's dependencies
+    can't break another's and nothing touches your system Python. **uv** is the fast installer a few newer
+    tools (theHarvester) now expect.
+  install:
+  - os: Windows
+    cmd: winget install Python.Python.3.13 GoLang.Go Git.Git Docker.DockerDesktop
+  - os: ''
+    cmd: py -m pip install --user pipx ; py -m pipx ensurepath
+  - os: macOS
+    cmd: brew install python pipx go git uv ; brew install --cask docker-desktop ; pipx ensurepath
+  - os: Linux
+    cmd: sudo apt install python3 pipx golang-go git docker.io ; pipx ensurepath
+  - os: All OS
+    cmd: pipx install uv
+    note: (skip on macOS if you used brew above)
+  - os: Check
+    cmd: python --version ; pipx --version ; go version ; git --version ; docker --version
+  notes:
+  - >-
+    Open a new terminal after `pipx ensurepath`. Go tools need a recent Go — subfinder's README asks for
+    1.24 and httpx's for 1.25 — and the distro `golang-go` is often older; if `go version` is too low,
+    take the tarball from go.dev/dl. Docker Desktop on Windows needs virtualization enabled in firmware.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: bench-keys
+  name: A key vault and one login per research identity
+  section: 00-bench-and-loop
+  kind: free · local tool
+  tier: start
+  summary: A password manager entry per service and a folder per research identity.
+  what: >-
+    API keys, throwaway-account logins and recovery codes live in a password manager, one entry per service
+    and one folder per research identity — never in a text file beside your notes.
+  why: >-
+    *Why it's a step:* OSINT piles up accounts (Shodan, urlscan, VirusTotal, Netlas, a burner Google account
+    for GHunt) and keys. Set them through each tool's config file or an environment variable, and never
+    commit them — a notes repo with a pasted key in it is exactly the mistake §10 exists to catch.
+  install:
+  - os: Windows
+    cmd: winget install KeePassXCTeam.KeePassXC
+  - os: macOS
+    cmd: brew install --cask keepassxc
+  - os: Linux
+    cmd: sudo apt install keepassxc
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: bench-case
+  name: A case folder and a log, the same every time
+  section: 00-bench-and-loop
+  kind: free · practice
+  tier: start
+  summary: One folder and one log per investigation, laid out the same way every time.
+  what: >-
+    One folder per investigation with a fixed layout: `capture/` for screenshots and archived pages, `notes/`
+    for the running log, `exports/` for raw tool output, `timeline/` for the table you build in §14. One
+    log line per finding.
+  why: >-
+    *Why fixed:* a layout you never have to think about is one you'll actually use at 2 a.m., and it's
+    what lets you hand the folder to someone else. Hash anything you might later have to defend, at the
+    moment you save it.
+  install:
+  - os: Windows
+    cmd: New-Item -ItemType Directory -Path case-001\capture, case-001\notes, case-001\exports, case-001\timeline
+  - os: macOS/Linux
+    cmd: mkdir -p case-001/{capture,notes,exports,timeline}
+  - os: 'Hash: Win'
+    cmd: Get-FileHash -Algorithm SHA256 .\case-001\capture\*
+  - os: 'Hash: Mac'
+    cmd: shasum -a 256 case-001/capture/*
+  - os: 'Hash: Linux'
+    cmd: sha256sum case-001/capture/*
+  notes:
+  - 'log line: `time (UTC) · selector · source URL · what I saw · confidence · archive link`'
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: bench-leaks
+  name: Check what the other side can see, once
+  section: 00-bench-and-loop
+  kind: free · site
+  tier: start
+  summary: Confirm the exit IP, DNS resolver and WebRTC address before the first case.
+  what: >-
+    Before the first case, load a leak-test page from the bench and confirm the exit IP, DNS resolver
+    and WebRTC address are the ones you expect, and that no personal account is signed in to the browser
+    profile.
+  why: >-
+    *Why:* the bench only protects you if it isn't quietly announcing your home connection. It takes two
+    minutes and is worth repeating after any VPN or network change.
+  notes:
+  - '[browserleaks.com](https://browserleaks.com/) — IP, WebRTC and DNS tests'
+  links:
+  - label: browserleaks.com
+    url: https://browserleaks.com/
+  verified:
+    date: '2026-11-23'
+- id: loop-scope
+  name: 1 · Scope and authorize
+  section: 00-bench-and-loop
+  kind: before the first query
+  summary: Write down who or what you're investigating, why, what you will and won't touch, and who authorized
+    it.
+  what: >-
+    Write down who or what you're investigating, why, what you will and won't touch, and who authorized
+    it. For a self-audit the authorization is you; for anyone else it's a written scope.
+  why: >-
+    *Why first:* it's the one step that can't be done afterwards, and it decides which sections are in
+    play. Authorized recon on your own domains can go active; research on a private individual stays strictly
+    passive and may need a lawful basis.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-seeds
+  name: 2 · List your seeds, pick a starting section
+  section: 00-bench-and-loop
+  kind: minutes
+  summary: List what you already hold and pick the section to start in.
+  what: >-
+    A seed is whatever you already hold. Write each one down and route it: username → §01 · email → §02
+    · phone → §03 · real name → §04 · domain or IP → §05 · company → §06 · image or video → §07 · social
+    post → §08 · breach question → §09 · repo or app → §10 · wallet → §11 · ship, aircraft or satellite
+    image → §12 · suspected fake → §13.
+  why: >-
+    *Why a list:* it turns "look into this" into a queue with an order, and the list is what you extend
+    when a finding becomes a new selector.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-collect
+  name: 3 · Collect passive first
+  section: 00-bench-and-loop
+  kind: default mode
+  summary: 'Start with sources that never touch the target: certificate logs, archives, public records.'
+  what: >-
+    Start with sources that never touch the target — certificate logs, archives, public records, search
+    operators, aggregator sites. Treat anything active (scans, brute-forcing, joining a channel, saving
+    a contact) as a separate decision that you log.
+  why: >-
+    *Why:* passive work is invisible and almost always in scope; active work is neither. The `passive`/`active`
+    distinction is the first thing a reviewer of your report will ask about.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-capture
+  name: 4 · Capture as you go
+  section: 00-bench-and-loop
+  kind: every finding
+  summary: Record URL, UTC time, screenshot and archive link when you find it, not at the end.
+  what: >-
+    URL, UTC timestamp, a screenshot that shows the address bar, and an archive link — recorded when you
+    find it, not at the end. §14 covers the habit and the tools (Hunchly, ArchiveBox, SingleFile).
+  why: '*Why now:* the interesting page is the one that disappears once someone notices attention.'
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-pivot
+  name: 5 · Pivot, then re-seed
+  section: 00-bench-and-loop
+  kind: the actual skill
+  summary: 'Every finding is a new selector: re-seed and go round again.'
+  what: >-
+    Every finding is a new selector: a profile gives an email, the email gives a breach, the breach gives
+    a second handle. Add each to the seed list, work it through its own section, and stop when pivots
+    stop paying.
+  why: >-
+    *Why a stop rule:* without one, an investigation expands until it hits the budget. Decide the depth
+    in step 1 — "two hops from the starting selector" is a perfectly good scope.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-verify
+  name: 6 · Verify before it counts
+  section: 00-bench-and-loop
+  kind: gate
+  summary: A finding enters the timeline only after a second, independent source.
+  what: >-
+    A finding enters the timeline only after you've asked what would make it false and looked for a second,
+    independent source. One aggregator hit is a lead; a hit confirmed in a primary record is a finding.
+  why: >-
+    *Why a gate:* the cost of a wrong finding grows with every step built on top of it. The method is
+    in §14's verification entry.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: loop-report
+  name: 7 · Analyze and write up
+  section: 00-bench-and-loop
+  kind: the deliverable
+  summary: Order findings into a UTC timeline, then report question, scope, method and findings.
+  what: >-
+    Order the dated findings into a timeline (UTC), keep observation and inference in separate columns,
+    then report: the question, scope, method, findings with confidence, what you did *not* do or couldn't
+    verify, and the log as an appendix. Redact third parties.
+  why: >-
+    *Why it's the point:* collection without a report is trivia. A short report that states its limits
+    is more credible than a long one that doesn't.
+  step: true
+  verified:
+    date: '2026-11-23'
+- id: maigret
+  name: Maigret
+  section: 01-username
+  kind: free · local tool · Python
+  tier: start
+  summary: Username search across thousands of sites that also parses each hit into a profile dossier.
+  what: >-
+    Checks a username against thousands of sites and — the part that matters — **parses what it finds**,
+    pulling names, bios, avatars, linked accounts and IDs off each hit into a single dossier. Exports
+    to HTML, PDF and JSON. A fork of Sherlock that grew well past it.
+  why: >-
+    *Why first:* the extraction step saves you opening 40 tabs by hand, and it's the most actively developed
+    of the three — version 0.6.7 is current on PyPI as of November 2026. Where Sherlock says "account
+    exists," Maigret says "account exists, and here's the display name and the linked Twitter."
+  install:
+  - os: All OS
+    cmd: pipx install maigret
+  - os: Run
+    cmd: maigret <username> --html
+  github: soxoj/maigret
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: sherlock
+  name: Sherlock
+  section: 01-username
+  kind: free · local tool · Python
+  tier: start
+  summary: 'The original username hunter: one handle across 400+ networks, fast and simple.'
+  what: >-
+    The original and still the best-known username hunter — checks one handle across 400+ social networks
+    and reports where it exists. Fast, simple output, no parsing. Ships preinstalled in Kali.
+  why: >-
+    *Why still run it:* different site list from Maigret, and actively maintained (0.16.2, September 2026).
+    Running both and comparing is standard practice — each catches sites the other misses. Treat every
+    hit as a *lead*, not a fact: common handles collide, and plenty of sites return a false positive on
+    any string you give them.
+  install:
+  - os: All OS
+    cmd: pipx install sherlock-project
+  - os: Run
+    cmd: sherlock <username>
+  - os: Kali
+    note: already installed
+  github: sherlock-project/sherlock
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: blackbird
+  name: Blackbird
+  section: 01-username
+  kind: free · local tool · Python
+  tier: start
+  summary: Username and email search over the WhatsMyName dataset, with PDF and CSV export.
+  what: >-
+    A username and email search tool in the same family as Maigret and Sherlock. It checks a handle against
+    600-plus sites using the WhatsMyName dataset, can export results to PDF and CSV, and has an optional
+    AI-profiling feature that summarizes what it found.
+  why: >-
+    *Why a second pick:* a different front end over the community dataset, and actively developed — its
+    repository shows hundreds of commits and many stars. The AI summary sends your findings to a third-party
+    service; leave it off for anything sensitive. Treat every hit as a lead, as with the other two.
+  install:
+  - os: All OS
+    cmd: git clone https://github.com/p1ngul1n0/blackbird ; cd blackbird
+  - os: Windows
+    cmd: python -m venv .venv ; .venv\Scripts\activate ; pip install -r requirements.txt
+  - os: macOS/Linux
+    cmd: python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+  - os: Run
+    cmd: python blackbird.py --username <handle>
+  notes:
+  - >-
+    Install steps follow the project's README layout; read `requirements.txt` before installing and keep
+    it in the research VM. There is a PyPI package named `blackbird`, but it was not confirmed to be this
+    project, so this guide doesn't use it.
+  links:
+  - label: github.com/p1ngul1n0/blackbird
+    url: https://github.com/p1ngul1n0/blackbird
+  github: p1ngul1n0/blackbird
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: whatsmyname
+  name: WhatsMyName
+  section: 01-username
+  kind: free · site + dataset
+  tier: start
+  summary: Community-maintained dataset of 700+ account-detection rules, with a web front end.
+  what: >-
+    A community-maintained JSON dataset of 700+ sites and their account-detection rules, plus a web front
+    end you can just type into. No install needed for the basic use.
+  why: >-
+    *Why it matters:* it's the **data layer half the other tools are built on**, and it's curated harder
+    than any single scanner's built-in list — detection rules get fixed when a site changes. Use the web
+    version for a quick check; pull the JSON when you're building something.
+  notes:
+  - >-
+    [whatsmyname.app](https://whatsmyname.app/) · dataset at [github.com/WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName)
+  links:
+  - label: whatsmyname.app
+    url: https://whatsmyname.app/
+  - label: github.com/WebBreacher/WhatsMyName
+    url: https://github.com/WebBreacher/WhatsMyName
+  github: WebBreacher/WhatsMyName
+  verified:
+    date: '2026-11-23'
+- id: handle-pivot
+  name: Manual handle pivoting
+  section: 01-username
+  kind: free · practice
+  tier: deeper
+  summary: Vary the handle by hand (jsmith, j_smith, jsmith88) and search it as a quoted string.
+  what: >-
+    The scanners only check the handle you gave them. People mutate: `jsmith` becomes `j_smith`, `jsmith88`,
+    `smithj`, `jsmithdev`. Build the variant list by hand and re-run. Then search the raw handle as a
+    quoted string in a normal search engine — forum posts, commit logs and pasted profiles surface things
+    no enumerator touches.
+  why: >-
+    *Why it's listed as a step:* this is where most of the actual findings come from, and no tool does
+    it for you. The number on the end is usually a birth year. The prefix is usually a real name. Both
+    are pivots into section 04.
+  verified:
+    date: '2026-11-23'
+- id: epieos
+  name: Epieos
+  section: 02-email
+  kind: free tier · site
+  tier: start
+  summary: Email or phone number in, registered services and linked Google account data out.
+  what: >-
+    Paste an email or phone number and get back the services it's registered with, plus any linked Google
+    account data — profile name, photo, public reviews, calendar if it's exposed. The fastest single lookup
+    in this section.
+  why: >-
+    *Why first:* zero setup, and the Google half alone often resolves an anonymous address to a real name
+    and face. The free tier is genuinely useful; paid unlocks depth. Run it before you install anything.
+  notes:
+  - '[epieos.com](https://epieos.com/)'
+  links:
+  - label: epieos.com
+    url: https://epieos.com/
+  verified:
+    date: '2026-11-23'
+- id: ghunt
+  name: GHunt
+  section: 02-email
+  kind: free · local tool · Python
+  tier: deeper
+  summary: 'Deep extraction from a Google account: name, photo, Maps reviews, YouTube and Calendar.'
+  what: >-
+    A Google-account investigation framework. Feed it a Gmail address or a Google account ID and it extracts
+    the profile name and photo, the account's public Maps reviews and photos, YouTube channel, Play Store
+    reviews, and Calendar if the user left it public.
+  why: >-
+    *Why it's worth the setup:* a Gmail address is extraordinarily common as a person's primary identity,
+    and this is the deepest free extraction of it. Maps reviews in particular are a goldmine — people
+    review their own gym, their local coffee shop, their dentist, quietly mapping where they live.
+  install:
+  - os: All OS
+    cmd: pipx install ghunt
+  - os: Then
+    cmd: ghunt login
+    note: (paste cookies from a throwaway Google account, never your own)
+  github: mxrch/GHunt
+  caution:
+    title: Use a burner Google account
+    body: GHunt authenticates as a real Google session.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: holehe
+  name: holehe
+  section: 02-email
+  kind: free · local tool · stale
+  tier: deeper
+  summary: 'Checks an email against 120-odd sites through their password-recovery flows. Stale: trust
+    hits, not misses.'
+  what: >-
+    Checks an email address against 120-odd sites by abusing their password-recovery and registration
+    flows — no email is ever sent to the target, it just reads what the form reveals. Tells you where
+    an address is registered.
+  why: >-
+    *Why the caveat:* the technique is sound and it still finds things, but **the last release was 1.61
+    in July 2022**. Four years of sites changing their reset flows means a lot of silent false negatives
+    now. Run it, believe the hits, don't trust the misses — and cross-check against Epieos above. A newer
+    tool in the same space, **user-scanner** (`pipx install user-scanner`), says it is actively maintained
+    and is on PyPI, but it is young and its author promotes it, so verify its hits the same way.
+  install:
+  - os: All OS
+    cmd: pipx install holehe
+  - os: Run
+    cmd: holehe <email>
+  notes:
+  - Accurate where it works, quietly out of date where it doesn't — PyPI still lists 1.61 as the latest
+    release.
+  github: megadose/holehe
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: hunterio
+  name: Hunter.io & email-format guessing
+  section: 02-email
+  kind: free tier · site
+  tier: deeper
+  summary: Given a domain, the organization's email pattern and the addresses already known.
+  what: >-
+    The reverse direction: given a *domain*, what do that organization's email addresses look like, and
+    which ones are known? Hunter reports the pattern — `first.last@`, `flast@`, `first@` — and lists addresses
+    it has seen, with a confidence score.
+  why: >-
+    *Why it matters:* once you know the pattern and have a staff list from section 06, you can construct
+    an entire organization's email addresses from names alone. This is the exact pivot phishing operators
+    use, which is why knowing it is defensive work too. Free tier is capped at a small number of searches
+    a month.
+  notes:
+  - '[hunter.io](https://hunter.io/) — free tier needs an account; verify guesses before relying on them'
+  links:
+  - label: hunter.io
+    url: https://hunter.io/
+  verified:
+    date: '2026-11-23'
+- id: email-headers
+  name: Reading the headers, not just the address
+  section: 02-email
+  kind: free · practice + sites
+  tier: start
+  summary: Read the full message headers to see where a message really came from and whether SPF, DKIM
+    and DMARC passed.
+  what: >-
+    A different question from the rest of this section: not "where is this address registered" but "where
+    did this *message* actually come from." The full headers record every server the mail passed through.
+    Read `Received:` bottom-up — the earliest hop is closest to the sender — then check `Return-Path`
+    against the display name, and whether **SPF, DKIM and DMARC** passed.
+  why: >-
+    *Why it's the fastest phishing verdict there is:* a message claiming to be from a bank whose first
+    hop is a residential IP in an unrelated country, with SPF failing, is settled in thirty seconds. The
+    originating IP then drops straight into §05. Get the raw headers from "Show original" (Gmail) or "View
+    source" / message properties (Outlook) — the summary view hides exactly the fields you need.
+  notes:
+  - >-
+    Paste into [mha.azurewebsites.net](https://mha.azurewebsites.net/) (Microsoft's Message Header Analyzer)
+    or Google's [Messageheader](https://toolbox.googleapps.com/apps/messageheader/) — both parse the hops
+    into a readable table
+  links:
+  - label: mha.azurewebsites.net
+    url: https://mha.azurewebsites.net/
+  - label: Messageheader
+    url: https://toolbox.googleapps.com/apps/messageheader/
+  caution:
+    title: Headers below the first trusted hop are forgeable
+    body: >-
+      Anything a sender controls can be faked, so `Received` lines can be fabricated from the bottom up.
+      Trust the hops added by *your own* mail infrastructure, and treat the rest as claims. SPF/DKIM/DMARC
+      results are the part that can't be spoofed.
+  verified:
+    date: '2026-11-23'
+- id: phoneinfoga
+  name: PhoneInfoga
+  section: 03-phone
+  kind: free · local tool · Go
+  tier: start
+  summary: Country, carrier and line type for a number, then a sweep of public sources.
+  what: >-
+    Takes a number and establishes the basics — country, carrier, line type (mobile / landline / VoIP)
+    — then runs it through search engines and reputation databases looking for where it's been posted
+    publicly.
+  why: >-
+    *Why line type matters most:* "VoIP" is the single most useful field it returns. A VoIP number means
+    a burner, a Google Voice line, or a service account, and that changes everything about how you read
+    the rest of the investigation. A real carrier mobile means a real person with a real contract. **Status:**
+    its README now calls it stable but unmaintained and warns the repository could be archived; the latest
+    release is 2.11.0. Treat it as frozen — the line-type check still works, but the scanners that call
+    out to other services will drift.
+  install:
+  - os: Docker
+    cmd: docker run --rm -it sundowndev/phoneinfoga:latest scan -n "<number>"
+  - os: Binary
+    note: download the release for your OS from github.com/sundowndev/phoneinfoga/releases
+  - os: Web UI
+    cmd: phoneinfoga serve -p 5000
+    note: (then open http://localhost:5000)
+  notes:
+  - >-
+    Use the international format with the country code, e.g. `+14155550100`. The Docker line is the same
+    on all three systems.
+  links:
+  - label: github.com/sundowndev/phoneinfoga
+    url: https://github.com/sundowndev/phoneinfoga
+  github: sundowndev/phoneinfoga
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: messaging-presence
+  name: Messaging-app presence check
+  section: 03-phone
+  kind: free · practice · burner device
+  tier: deeper
+  summary: Save the number on a burner device and see which messaging apps show a profile.
+  what: >-
+    Save the number as a contact on a burner device or secondary account and see which apps light up —
+    WhatsApp, Signal, Telegram, Viber. Most will show you a profile photo, a display name, and sometimes
+    a status line or last-seen, purely because you have the number.
+  why: >-
+    *Why it works:* contact discovery is a feature, not a bug, and almost nobody locks down the profile
+    photo. A face and a real first name from a bare number is a large pivot. **Telegram in particular**
+    often exposes a username, which drops you straight back into section 01.
+  caution:
+    title: This one is active, and it can notify
+    body: >-
+      Saving a contact is passive, but a mistaken tap sends a message or a request the target sees. Use
+      a device and account that are not yours, and understand that some platforms have surfaced "so-and-so
+      joined" notifications to the other party. Never do this from a personal phone.
+  verified:
+    date: '2026-11-23'
+- id: search-operators
+  name: Search operators, used properly
+  section: 04-real-name
+  kind: free · practice
+  tier: start
+  summary: 'Quoted phrases, site:, filetype: and friends, which outperform most dedicated tools for a
+    name.'
+  what: >-
+    The unglamorous skill that outperforms most tools. `"exact phrase"` for names, `site:` to pin a platform,
+    `filetype:pdf` for documents, `intitle:` and `inurl:` for structure, `-term` to cut noise. Combine
+    them: `"Jane Smith" site:linkedin.com`, or `"Jane Smith" filetype:pdf` to find her in a conference
+    programme or a board minutes PDF.
+  why: >-
+    *Why it leads this section:* a specialized tool searches a fixed list of sites. An operator query
+    searches the indexed web. For a name, the second one wins more often than people expect — and **run
+    the same query on Bing and DuckDuckGo too**, since their indexes and their tolerance for operator
+    queries differ from Google's.
+  notes:
+  - >-
+    The Google Hacking Database at [exploit-db.com/google-hacking-database](https://www.exploit-db.com/google-hacking-database)
+    catalogs the heavy-duty patterns
+  links:
+  - label: exploit-db.com/google-hacking-database
+    url: https://www.exploit-db.com/google-hacking-database
+  verified:
+    date: '2026-11-23'
+- id: people-search
+  name: People-search aggregators
+  section: 04-real-name
+  kind: free & paid · sites
+  tier: gated
+  summary: 'Data-broker profiles: leads to confirm elsewhere, never findings on their own.'
+  what: >-
+    The data-broker layer — Spokeo, BeenVerified, TruePeopleSearch, Whitepages, FastPeopleSearch and dozens
+    more. They aggregate public records, marketing databases and scraped social data into a profile: addresses,
+    relatives, phone numbers, age.
+  why: >-
+    *Why to treat carefully:* the data is often **wrong, stale, or about a different person with the same
+    name** — aggregators merge records aggressively and never correct. Use them to generate leads you
+    then confirm in a primary source, never as a finding on their own. The free tiers are mostly a teaser
+    for a subscription.
+  caution:
+    title: The mirror of this is your own exposure
+    body: These sites hold a profile on you right now.
+  verified:
+    date: '2026-11-23'
+- id: public-records
+  name: Court, property & voter records
+  section: 04-real-name
+  kind: free & paid · sites
+  tier: deeper
+  summary: 'Court, property and voter records: the primary sources the aggregators scrape.'
+  what: >-
+    The primary sources the aggregators are scraping. In the US: **CourtListener / RECAP** for federal
+    case documents (free, and a genuine public good), **PACER** for the official federal docket (paid
+    per page), county assessor and recorder sites for property ownership, and state business registries.
+    Many jurisdictions publish voter rolls.
+  why: >-
+    *Why it beats the aggregators:* it's authoritative, dated, and citable. A property record naming an
+    owner at an address is evidence; a Spokeo profile saying the same thing is a rumor. Slower, jurisdiction-specific,
+    and worth the time when the finding has to hold up.
+  notes:
+  - '[courtlistener.com](https://www.courtlistener.com/) — free federal case law and dockets via the RECAP
+    archive'
+  links:
+  - label: courtlistener.com
+    url: https://www.courtlistener.com/
+  verified:
+    date: '2026-11-23'
+- id: genealogy
+  name: Obituaries & genealogy sources
+  section: 04-real-name
+  kind: free tier · sites
+  tier: deeper
+  summary: Obituaries and genealogy sites that name a whole family in one permanent document.
+  what: >-
+    Obituaries name the entire family — spouse, children, siblings, the town they live in, sometimes employers
+    — in one indexed, permanent document. FamilySearch, FindAGrave and newspaper archives make them searchable.
+  why: >-
+    *Why investigators love them:* a single obituary can resolve a family network that would take days
+    to assemble any other way, and people who scrub their own online presence rarely think about a relative's
+    death notice from 2011. It's also a reminder that **your exposure includes what other people publish
+    about you**.
+  notes:
+  - '[familysearch.org](https://www.familysearch.org/) — free with an account'
+  links:
+  - label: familysearch.org
+    url: https://www.familysearch.org/
+  verified:
+    date: '2026-11-23'
+- id: whois-rdap
+  name: WHOIS / RDAP & DNS history
+  section: 05-domain-ip-network
+  kind: free · site + CLI
+  tier: start
+  summary: Registration dates, registrar and nameservers, plus historical DNS from before privacy was
+    switched on.
+  what: >-
+    Registration date, registrar, nameservers, and — occasionally — a real registrant. GDPR redacted most
+    contact details years ago, so the **dates and nameservers** are now the valuable fields. Pair with
+    historical DNS (SecurityTrails, DNSlytics, ViewDNS) to see what the records used to say before privacy
+    was switched on.
+  why: >-
+    *The single best triage signal:* a domain registered four days ago and already sending you email is
+    a phishing domain, and that one field settles it faster than any analysis. Historical records are
+    where the un-redacted 2015 registrant email is still sitting.
+  notes:
+  - >-
+    `whois example.com` · [viewdns.info](https://viewdns.info/) · [securitytrails.com](https://securitytrails.com/)
+    (free account)
+  links:
+  - label: viewdns.info
+    url: https://viewdns.info/
+  - label: securitytrails.com
+    url: https://securitytrails.com/
+  verified:
+    date: '2026-11-23'
+- id: asn-bgp
+  name: ASN, BGP & netblock lookups
+  section: 05-domain-ip-network
+  kind: free · sites
+  tier: start
+  summary: Map an IP to its network block and the autonomous system that runs it.
+  what: >-
+    Every IP belongs to a network block, and every block to an autonomous system (ASN) run by someone.
+    **Hurricane Electric's BGP Toolkit** (bgp.he.net) and **RIPEstat** take an IP, ASN or organization
+    and return the prefixes it announces, its peers, and its registered name and contacts.
+  why: >-
+    *Why it matters:* it answers "what else does this organization run" without touching the target —
+    the netblocks of a company, or the hosting provider behind a phishing site, and which of its neighbours
+    are bulletproof hosts. It's the passive complement to Amass's ASN mapping below.
+  notes:
+  - >-
+    [bgp.he.net](https://bgp.he.net/) · [stat.ripe.net](https://stat.ripe.net/) · `whois -h whois.cymru.com
+    " -v 203.0.113.5"` for a quick IP-to-ASN lookup on Linux and macOS
+  links:
+  - label: bgp.he.net
+    url: https://bgp.he.net/
+  - label: stat.ripe.net
+    url: https://stat.ripe.net/
+  verified:
+    date: '2026-11-23'
+- id: crtsh
+  name: Certificate transparency logs
+  section: 05-domain-ip-network
+  kind: free · site
+  tier: start
+  summary: Search the public certificate logs for every subdomain a domain has ever certified.
+  what: >-
+    Every TLS certificate issued by a public CA is written to an append-only public log. Search a domain
+    at **crt.sh** and you get the subdomains it has ever certified — including internal-sounding ones
+    nobody meant to publish: `vpn.`, `staging.`, `jira.`, `backup-admin.`
+  why: >-
+    *Why it's the best free recon there is:* completely passive — you query a log, never the target —
+    and the data is authoritative rather than guessed. It also catches **typosquats and lookalike domains**
+    the moment someone certifies one, which is how you spot a phishing campaign being built against your
+    own org before it launches.
+  notes:
+  - '[crt.sh](https://crt.sh/) — try `%.example.com` as the query'
+  links:
+  - label: crt.sh
+    url: https://crt.sh/
+  verified:
+    date: '2026-11-23'
+- id: urlscan-osint
+  name: urlscan.io
+  section: 05-domain-ip-network
+  kind: free tier · site + API
+  tier: start
+  summary: Sandboxed page scans with screenshot and request chain, plus a searchable archive of everyone's
+    scans.
+  what: >-
+    Visits a URL in a sandbox on your behalf and hands back a screenshot, the full request chain, every
+    domain contacted, and the page's DOM — without you ever loading it. **Also searchable**: you can hunt
+    the archive of everyone else's scans for a favicon hash, a domain, or a piece of page content.
+  why: >-
+    *Why the search half is underused:* pivoting on a favicon hash or a unique script across urlscan's
+    history finds every other site running the same phishing kit.
+  notes:
+  - >-
+    [urlscan.io](https://urlscan.io/) — mark sensitive scans **unlisted**; public scans are visible to
+    everyone, including your target
+  links:
+  - label: urlscan.io
+    url: https://urlscan.io/
+  verified:
+    date: '2026-11-23'
+- id: shodan-censys
+  name: Shodan, Censys & friends
+  section: 05-domain-ip-network
+  kind: free account · paid to use properly
+  tier: gated
+  summary: 'Search engines for internet-facing machines: ports, banners, certificates, exposed panels.'
+  what: >-
+    Search engines for machines rather than pages. They continuously scan the internet and index what
+    answers — open ports, service banners, software versions, TLS certificates, exposed panels and cameras.
+    Query by organization, ASN, certificate, or product version.
+  why: >-
+    *Current state, November 2026:* Shodan's account page lists a one-time membership at $49 (100 query
+    credits and 16 monitored IPs) with subscription tiers above it, and a free account includes a limited
+    free API plan. **Censys has moved to the Censys Platform and deprecated its Legacy Search and Legacy
+    API**, so older tutorials and scripts point at a dead endpoint; a free Censys account gives basic
+    visibility into standard ports and services. FOFA and ZoomEye are the non-US alternatives with different
+    coverage. **Netlas** has a free community plan — 50 requests a day and 2,500 search results a month,
+    non-commercial — which is currently the more usable free option. **Criminal IP** is live, but its
+    homepage no longer shows a free tier, so check before relying on it. **LeakIX** asks a different question
+    and gets its own entry below.
+  verified:
+    date: '2026-11-23'
+- id: leakix
+  name: LeakIX
+  section: 05-domain-ip-network
+  kind: free · site + API · account to see detail
+  tier: deeper
+  summary: 'Index of exposed misconfigurations: open databases, buckets, Git directories and admin panels.'
+  what: >-
+    Shodan tells you *what is running* at an address. LeakIX tells you *what is exposed* — it indexes
+    the misconfigurations themselves: open Elasticsearch and MongoDB instances, world-readable S3 and
+    storage buckets, exposed Git directories, unprotected admin panels, and services matching known vulnerability
+    signatures. Searchable by `port:`, `protocol:`, `asn:` and CIDR range.
+  why: >-
+    *Why it earns a separate entry:* it's a narrower index that answers the question you actually have
+    during an authorized assessment or a self-audit — not "what does this org run" but "what has this
+    org left open." Running your own domains and ASN through it is a five-minute exposure check with a
+    genuinely different result set from Shodan's. It also names the researcher who reported each finding,
+    which makes provenance unusually clear.
+  notes:
+  - >-
+    [leakix.net](https://leakix.net/) — browsing is open; a free account unlocks the detail on individual
+    findings; the free plan delays results by 15 days and the first paid tier is about €25 a month
+  links:
+  - label: leakix.net
+    url: https://leakix.net/
+  caution:
+    title: An open database is still someone's database
+    body: >-
+      LeakIX shows you unauthenticated services. Connecting to one you don't own is unauthorized access
+      whether or not it asked for a password — the absence of a lock is not an invitation. Look, record,
+      report; never connect.
+  verified:
+    date: '2026-11-23'
+- id: bucket-search
+  name: GrayhatWarfare — exposed cloud storage
+  section: 05-domain-ip-network
+  kind: free tier · site
+  tier: deeper
+  summary: Search engine over publicly readable cloud storage buckets.
+  what: >-
+    A search engine over publicly readable cloud storage buckets (S3, Azure and similar). Search by keyword,
+    filename or extension and it lists what was left open — backups, spreadsheets, source archives.
+  why: >-
+    *Why it's here:* misconfigured buckets are one of the commonest self-inflicted exposures, and searching
+    your own organization's names is a fast audit. It sits beside LeakIX above — LeakIX finds exposed
+    services, this finds exposed files.
+  notes:
+  - '[grayhatwarfare.com](https://grayhatwarfare.com/) — limited free tier; a paid plan lifts the caps'
+  links:
+  - label: grayhatwarfare.com
+    url: https://grayhatwarfare.com/
+  caution:
+    title: Open is not yours
+    body: >-
+      A world-readable bucket still belongs to someone. Looking at a listing is research; opening, downloading
+      or modifying someone else's files is unauthorized access. Record the bucket name, report it to its
+      owner, and stop.
+  verified:
+    date: '2026-11-23'
+- id: amass
+  name: OWASP Amass
+  section: 05-domain-ip-network
+  kind: free · local tool · Go
+  tier: deeper
+  summary: Deep attack-surface mapping from dozens of passive sources, with optional active modes.
+  what: >-
+    The heavyweight attack-surface mapper. Pulls from dozens of passive sources — certificate logs, search
+    engines, DNS aggregators, ASN data — and optionally goes active with brute-forcing and zone walking,
+    then graphs the whole result. Maps not just subdomains but the netblocks and ASNs an organization
+    owns.
+  why: >-
+    *Why it's the deep option:* nothing else assembles the same breadth in one run, and the ASN mapping
+    finds infrastructure that isn't under the obvious domain at all. **Know which mode you're in** — passive
+    enumeration is invisible, active brute-forcing hammers the target's DNS and will show up in their
+    logs. **Amass is now on v5** (5.1.x), which moved results into a local asset database with an engine
+    service behind the command line, so v4-era tutorials and flags may not apply — read the current docs
+    before copying a command.
+  install:
+  - os: macOS
+    cmd: brew install amass
+  - os: Linux
+    cmd: sudo apt install amass
+    note: (Kali and some Debian releases — check the version it gives you)
+  - os: Any OS
+    cmd: go install -v github.com/owasp-amass/amass/v5/...@main
+    note: (needs a current Go; see §00)
+  notes:
+  - >-
+    Upstream's docs live at owasp-amass.github.io/docs. The passive-only flag in v4 was `amass enum -passive
+    -d example.com` — confirm its v5 equivalent there before relying on it.
+  links:
+  - label: github.com/owasp-amass/amass
+    url: https://github.com/owasp-amass/amass
+  github: owasp-amass/amass
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: projectdiscovery
+  name: subfinder + httpx
+  section: 05-domain-ip-network
+  kind: free · local tools · Go
+  tier: deeper
+  summary: subfinder lists subdomains passively; httpx shows which ones answer, with titles and tech.
+  what: >-
+    The fast, composable pair from ProjectDiscovery. **subfinder** does passive subdomain enumeration
+    and nothing else, extremely quickly. **httpx** takes that list and reports which hosts actually answer,
+    with status codes, page titles, technologies and TLS details.
+  why: >-
+    *Why alongside Amass:* different philosophy — Amass is one deep tool, these are Unix pipes. `subfinder
+    -d example.com | httpx -title -tech-detect` gives you a live, annotated inventory in seconds, and
+    slots into a script far more easily. Most practitioners run both and merge.
+  install:
+  - os: macOS
+    cmd: brew install subfinder httpx
+  - os: Any OS
+    cmd: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+  - os: ''
+    cmd: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+  - os: Run
+    cmd: subfinder -d example.com | httpx -title -tech-detect
+  notes:
+  - >-
+    A Python package also called `httpx` installs a command with the same name. If the wrong one answers,
+    check `where httpx` (Windows) or `which -a httpx` and put Go's bin folder first on your PATH. httpx's
+    README asks for Go 1.25 or newer and warns the project moves fast — read the changelog before updating.
+  links:
+  - label: github.com/projectdiscovery/subfinder
+    url: https://github.com/projectdiscovery/subfinder
+  - label: github.com/projectdiscovery/httpx
+    url: https://github.com/projectdiscovery/httpx
+  github: projectdiscovery/subfinder
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: wayback
+  name: Wayback Machine & archive.today
+  section: 05-domain-ip-network
+  kind: free · sites
+  tier: start
+  summary: Archived copies of what a site used to say, and a way to preserve what it says now.
+  what: >-
+    What the site said before they changed it. The Internet Archive's Wayback Machine holds snapshots
+    going back decades; **archive.today** is the complement — it captures on demand, renders JavaScript,
+    and keeps copies of things the Wayback Machine has been asked to remove.
+  why: >-
+    *Two distinct uses.* Historically: old staff pages, old contact details, the un-redacted version of
+    a document. Operationally: **archive anything you find, immediately**, so your evidence survives the
+    page being deleted the day after you cite it. The Wayback CDX API also dumps every URL ever archived
+    under a domain — a free, entirely passive site map.
+  notes:
+  - >-
+    [web.archive.org](https://web.archive.org/) · [archive.today](https://archive.today/) · CDX: `web.archive.org/cdx/search/cdx?url=*.example.com`
+    · [Common Crawl](https://commoncrawl.org/) for bulk index queries across the whole web
+  links:
+  - label: web.archive.org
+    url: https://web.archive.org/
+  - label: archive.today
+    url: https://archive.today/
+  - label: Common Crawl
+    url: https://commoncrawl.org/
+  verified:
+    date: '2026-11-23'
+- id: dns-browser
+  name: DNSDumpster, Robtex & DNSViz
+  section: 05-domain-ip-network
+  kind: free · sites
+  tier: start
+  summary: 'No-install DNS views: host maps, reverse nameserver and IP pivots, DNSSEC chains.'
+  what: >-
+    The no-install layer under §05's command-line tools. **DNSDumpster** maps a domain's hosts, MX, TXT
+    and netblocks and draws the relationships. **Robtex** pivots the other way — given an IP or nameserver,
+    what *else* points at it. **DNSViz** visualizes the DNSSEC chain and shows exactly where validation
+    breaks.
+  why: >-
+    *Why keep browser tools when you have subfinder:* they're instant, they need no setup, and Robtex's
+    reverse pivot in particular — every domain sharing a nameserver or an IP — is a shared-hosting and
+    shared-operator signal the enumeration tools don't hand you directly. Use these first, then reach
+    for the CLI when you need depth or automation.
+  notes:
+  - >-
+    [dnsdumpster.com](https://dnsdumpster.com/) · [robtex.com](https://www.robtex.com/) · [dnsviz.net](https://dnsviz.net/)
+  links:
+  - label: dnsdumpster.com
+    url: https://dnsdumpster.com/
+  - label: robtex.com
+    url: https://www.robtex.com/
+  - label: dnsviz.net
+    url: https://dnsviz.net/
+  verified:
+    date: '2026-11-23'
+- id: enrichment
+  name: Indicator enrichment — is this already known bad?
+  section: 05-domain-ip-network
+  kind: free tier · sites + APIs
+  tier: start
+  summary: Check whether an IP, domain, URL or hash is already known bad before investigating from scratch.
+  what: >-
+    Before you investigate an IP, domain, URL or file hash from scratch, ask whether someone already has.
+    **VirusTotal** for files, URLs and domains across dozens of engines; **AbuseIPDB** for an IP's reported
+    abuse history; **GreyNoise** to tell mass internet background scanning from something aimed at you
+    specifically; **AlienVault OTX** for community pulses; and the **abuse.ch** family — URLhaus, MalwareBazaar,
+    ThreatFox — for malware distribution and current IOCs.
+  why: >-
+    *Why it belongs at the front of this section:* most indicators you'll ever look at are already documented,
+    and five minutes of enrichment saves an hour of original work. **GreyNoise is the one that changes
+    a decision** — "this IP scans the entire internet daily" and "this IP touched only you" are different
+    incidents.
+  caution:
+    title: Uploading is disclosure
+    body: >-
+      Submitting a file or URL to VirusTotal can make it public, and submissions are visible to paying
+      subscribers — including, potentially, the adversary who sent it. *Search* by hash rather than uploading
+      whenever you can, and never upload a document from a live investigation or anything containing client
+      data.
+  verified:
+    date: '2026-11-23'
+- id: wigle
+  name: WiGLE — geolocating a Wi-Fi network
+  section: 05-domain-ip-network
+  kind: free account · site + API
+  tier: deeper
+  summary: Geolocate a Wi-Fi network from its BSSID or SSID in a global wardriving database.
+  what: >-
+    A global wardriving database of wireless networks contributed by volunteers, searchable by **BSSID**
+    (the access point's hardware address) or **SSID** (its name). Given either, it returns where that
+    network has been observed — often to street level.
+  why: >-
+    *Why a BSSID is a location:* access points rarely move, so a BSSID in a photo of a router, in a device's
+    saved-network list, or in a leaked config is a physical address. An unusual SSID is nearly as good
+    — a distinctive network name often appears exactly once in the database. The mirror-image lesson is
+    that **your own home SSID is probably in there**, and suffixing it with `_nomap` is what removes it
+    from Google's and Microsoft's equivalents.
+  notes:
+  - >-
+    [wigle.net](https://wigle.net/) — free account needed to search · [geowifi](https://github.com/GONZOsint/geowifi)
+    queries several such databases at once
+  links:
+  - label: wigle.net
+    url: https://wigle.net/
+  - label: geowifi
+    url: https://github.com/GONZOsint/geowifi
+  verified:
+    date: '2026-11-23'
+- id: opencorporates
+  name: OpenCorporates & national registries
+  section: 06-organization
+  kind: free tier · sites
+  tier: start
+  summary: 'Worldwide company registries in one search: officers, incorporation dates and filings.'
+  what: >-
+    OpenCorporates aggregates company registries worldwide into one searchable database — legal name,
+    jurisdiction, incorporation date, officers, and filings. Behind it sit the national sources: Companies
+    House (UK), the state Secretary of State registries (US), and their equivalents elsewhere.
+  why: >-
+    *Why start here:* officers and directors are **named humans with addresses**, which is the pivot from
+    an organization straight back to section 04. Shell-company structures become visible when the same
+    three names appear as directors across nine entities.
+  notes:
+  - >-
+    [opencorporates.com](https://opencorporates.com/) — go to the national registry directly for the authoritative
+    filing
+  links:
+  - label: opencorporates.com
+    url: https://opencorporates.com/
+  verified:
+    date: '2026-11-23'
+- id: edgar-aleph
+  name: SEC EDGAR & OCCRP Aleph
+  section: 06-organization
+  kind: free · sites
+  tier: deeper
+  summary: EDGAR for US public-company filings; OCCRP Aleph for leaks, sanctions and registries.
+  what: >-
+    **EDGAR** holds every filing by a US public company — annual reports, executive compensation, ownership
+    stakes, subsidiary lists, and the named signatories. **Aleph** is OCCRP's investigative archive: leaked
+    datasets, sanctions and watch lists, court records and corporate registries from across the world,
+    all cross-searchable.
+  why: >-
+    *Why these two:* EDGAR's Exhibit 21 subsidiary list maps a corporate group in one document, and its
+    filings name real executives with real signatures. Aleph is the single best place to check a name
+    or entity against leaks, sanctions and offshore records at once — built by journalists, free, and
+    genuinely deep.
+  notes:
+  - >-
+    [sec.gov/edgar/search](https://www.sec.gov/edgar/search/) · [aleph.occrp.org](https://aleph.occrp.org/)
+    — moved onto OCCRP's new Aleph Pro infrastructure in Dec 2025; **the public instance stays free**
+  links:
+  - label: sec.gov/edgar/search
+    url: https://www.sec.gov/edgar/search/
+  - label: aleph.occrp.org
+    url: https://aleph.occrp.org/
+  verified:
+    date: '2026-11-23'
+- id: sanctions-ownership
+  name: OpenSanctions, ICIJ Offshore Leaks & Open Ownership
+  section: 06-organization
+  kind: free · sites
+  tier: start
+  summary: Beneficial-ownership, sanctions and offshore-leak databases.
+  what: >-
+    The beneficial-ownership and watch-list layer. **OpenSanctions** consolidates sanctions lists and
+    politically-exposed-person data into one searchable, matchable database. The **ICIJ Offshore Leaks
+    Database** makes the Panama, Paradise and Pandora Papers searchable. **Open Ownership** publishes
+    beneficial-ownership registers where countries release them.
+  why: >-
+    *Why after OpenCorporates:* a company record names a director; these tell you whether the director,
+    or the real owner behind a shell, is sanctioned, politically exposed or sitting in a leak. Run a name
+    here before you build a picture of a company's people. A match is a *lead* — names collide, so confirm
+    with a date of birth or a second record.
+  notes:
+  - >-
+    [opensanctions.org](https://www.opensanctions.org/) · [offshoreleaks.icij.org](https://offshoreleaks.icij.org/)
+    · [openownership.org](https://www.openownership.org/) — check OpenSanctions' licence: free for non-commercial
+    use, a licence for business use
+  links:
+  - label: opensanctions.org
+    url: https://www.opensanctions.org/
+  - label: offshoreleaks.icij.org
+    url: https://offshoreleaks.icij.org/
+  - label: openownership.org
+    url: https://www.openownership.org/
+  verified:
+    date: '2026-11-23'
+- id: theharvester
+  name: theHarvester
+  section: 06-organization
+  kind: free · local tool · Python
+  tier: deeper
+  summary: Emails, employee names, subdomains and hosts for a domain from search engines and logs.
+  what: >-
+    The classic organizational recon tool: give it a domain and it sweeps search engines, certificate
+    logs, PGP key servers and data sources for **email addresses, employee names, subdomains and hosts**
+    associated with it. One command, broad sources.
+  why: >-
+    *Why it's still standard:* it's the fastest way to assemble the human attack surface of an organization,
+    and it's preinstalled on Kali. Combine its output with the email pattern from Hunter.io in section
+    02 and you have the full construct-any-address capability.
+  install:
+  - os: All OS
+    cmd: git clone https://github.com/laramies/theHarvester ; cd theHarvester ; uv sync
+  - os: Run
+    cmd: uv run theHarvester -d example.com -b crtsh,certspotter
+  - os: Kali
+    note: preinstalled
+  notes:
+  - >-
+    As of its README on 23 Nov 2026 the current release is 4.11.1 and asks for a very recent Python; `uv`
+    fetches the right one for you. On Windows run it inside WSL. Source at github.com/laramies/theHarvester.
+  links:
+  - label: github.com/laramies/theHarvester
+    url: https://github.com/laramies/theHarvester
+  github: laramies/theHarvester
+  caution:
+    title: Don't install it from PyPI
+    body: >-
+      The `theHarvester` package on PyPI is an abandoned placeholder — version 0.0.1 from 2019, nothing
+      to do with the real project. `pip install theHarvester` gets you a stub. Use Kali's copy or install
+      from the GitHub repo.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: tech-stack
+  name: Tech-stack fingerprinting & job postings
+  section: 06-organization
+  kind: free tier · sites + extension
+  tier: deeper
+  summary: Fingerprint a site's stack, and read the job postings that list the rest.
+  what: >-
+    What an organization *runs*, established two ways. **Wappalyzer** or **BuiltWith** fingerprint a site's
+    stack from the browser. And their **job postings** list it outright — "experience with Okta, CrowdStrike,
+    ServiceNow and Azure AD required" is a free internal architecture diagram.
+  why: >-
+    *Why job ads are the sleeper source:* no tool needed, entirely passive, and organizations publish
+    their security stack, their cloud provider and their internal tooling voluntarily because they have
+    to hire. The defensive lesson is identical — **read your own postings and see what you're advertising**.
+  notes:
+  - '[wappalyzer.com](https://www.wappalyzer.com/) — browser extension, free tier; then just read the
+    careers page'
+  links:
+  - label: wappalyzer.com
+    url: https://www.wappalyzer.com/
+  verified:
+    date: '2026-11-23'
+- id: tracker-ids
+  name: Shared tracker & analytics IDs
+  section: 06-organization
+  kind: free · sites + view-source
+  tier: deeper
+  summary: Analytics, AdSense and pixel IDs that link a network of sites to one operator.
+  what: >-
+    The highest-yield infrastructure pivot on this guide. A site's page source carries identifiers its
+    operator reused across everything they run — a Google Analytics `UA-`/`G-` tag, an AdSense publisher
+    ID, a Facebook Pixel, a Matomo site ID. Search those strings and you get every other site the same
+    person set up.
+  why: >-
+    *Why it beats WHOIS now:* registration privacy hides the owner, but analytics IDs are pasted into
+    the page by hand and almost nobody thinks to vary them. This is the single technique that most reliably
+    links a network of scam sites, a shell-company web presence, or a disinformation cluster to one operator.
+    Also pivot on **favicon hashes** and unique script paths via urlscan's search.
+  notes:
+  - >-
+    Read the page source, or use [analyzeid.com](https://analyzeid.com/) / [spyonweb.com](https://spyonweb.com/)
+    · then confirm the set with a urlscan.io search on the same ID
+  links:
+  - label: analyzeid.com
+    url: https://analyzeid.com/
+  - label: spyonweb.com
+    url: https://spyonweb.com/
+  verified:
+    date: '2026-11-23'
+- id: exif-osint
+  name: ExifTool — read the metadata first
+  section: 07-photo-video
+  kind: free · local tool
+  tier: start
+  summary: 'Read embedded metadata first: GPS, timestamps, camera serial numbers, editing software.'
+  what: >-
+    Always the first move. Dumps every embedded field: GPS coordinates, capture timestamp, camera make,
+    model and *serial number*, lens, software used to edit, and often an author or copyright string. On
+    documents it reveals author, organization, and revision history.
+  why: >-
+    *Why first:* it's free, instant, and sometimes ends the investigation on the spot with a GPS tag.
+    When it comes back empty, that's information too — **major platforms strip EXIF on upload**, so a
+    stripped file means it came through a social network, while an intact one means you have an original
+    off a phone or camera. Camera serial numbers link separate photos to one device.
+  install:
+  - os: Windows
+    cmd: winget install OliverBetz.ExifTool
+  - os: macOS
+    cmd: brew install exiftool
+  - os: Linux
+    cmd: sudo apt install libimage-exiftool-perl
+  - os: Run
+    cmd: exiftool -a -G1 image.jpg
+  notes:
+  - The winget ID was not machine-checked; the Homebrew formula was.
+  github: exiftool/exiftool
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: reverse-image
+  name: Reverse image search — all four engines
+  section: 07-photo-video
+  kind: free · sites
+  tier: start
+  summary: Yandex, Google Lens, Bing and TinEye each find different things; crop before you search.
+  what: >-
+    Run the image through **Yandex**, **Google Lens**, **Bing Visual Search** and **TinEye**. They are
+    not interchangeable and the difference is large: Yandex is markedly the strongest at faces, places
+    and visually-similar-but-not-identical images; TinEye is the one that finds *exact* copies and, crucially,
+    sorts by **oldest first** so you can find the original.
+  why: >-
+    *The technique worth knowing:* crop before you search. Feeding the whole photo gets you "generic street
+    scene"; cropping to the one distinctive thing — a shop sign, a bus livery, an unusual building — gets
+    you the location. Run each crop through all four.
+  notes:
+  - >-
+    [yandex.com/images](https://yandex.com/images/) · [lens.google.com](https://lens.google.com/) · [tineye.com](https://tineye.com/)
+    — and Bing's visual search
+  links:
+  - label: yandex.com/images
+    url: https://yandex.com/images/
+  - label: lens.google.com
+    url: https://lens.google.com/
+  - label: tineye.com
+    url: https://tineye.com/
+  verified:
+    date: '2026-11-23'
+- id: geolocation
+  name: Geolocation — the chronolocation toolkit
+  section: 07-photo-video
+  kind: free · sites · practice
+  tier: deeper
+  summary: Place and date an unlabelled photo from terrain, signage, shadows and street imagery.
+  what: >-
+    Pinning an undated, untagged photo to a place and time by reasoning from what's in it. The working
+    set: **Google Earth** and street-level imagery for matching terrain and buildings, **Mapillary** and
+    KartaView for street views where Google has none, **Overpass Turbo** to query OpenStreetMap for features
+    ("every church with a spire within 5km of a river"), and **SunCalc** to derive the time of day and
+    date range from shadow angles.
+  why: >-
+    *Why it's the flagship skill:* this is the technique behind most published open-source investigations,
+    and it's almost entirely analytical — road markings, power pylon design, licence plate format, vegetation,
+    language on signage. The tools just check the hypothesis you formed by looking.
+  notes:
+  - >-
+    [overpass-turbo.eu](https://overpass-turbo.eu/) · [suncalc.org](https://www.suncalc.org/) · [mapillary.com](https://www.mapillary.com/)
+    · ShadeMap and Shadow Finder for shadow analysis · KartaView · overhead imagery is in §12
+  links:
+  - label: overpass-turbo.eu
+    url: https://overpass-turbo.eu/
+  - label: suncalc.org
+    url: https://www.suncalc.org/
+  - label: mapillary.com
+    url: https://www.mapillary.com/
+  verified:
+    date: '2026-11-23'
+- id: invid
+  name: InVID / WeVerify — video verification
+  section: 07-photo-video
+  kind: free · browser extension
+  tier: deeper
+  summary: 'Browser extension for video: keyframe extraction, metadata, magnification and forensic filters.'
+  what: >-
+    The standard verification toolkit for video, built for newsrooms. Splits a video into keyframes so
+    you can reverse-image-search each one, reads platform metadata, magnifies and enhances regions, checks
+    a Twitter/X account's history, and runs forensic filters for manipulation.
+  why: >-
+    *Why it exists as one extension:* video can't be reverse-searched directly — the keyframe step is
+    the whole trick, and doing it by hand is tedious. Increasingly load-bearing now that synthetic video
+    is cheap: the first question about any dramatic clip is whether it's old footage recycled, and keyframe
+    search answers that in a minute.
+  notes:
+  - Extension for Chrome and Firefox — search "InVID WeVerify" in your browser's add-on store
+  verified:
+    date: '2026-11-23'
+- id: face-search
+  name: Facial-recognition search engines
+  section: 07-photo-video
+  kind: paid · sites
+  tier: gated
+  summary: Search the web by face. The most invasive capability in this guide; use it on yourself only.
+  what: >-
+    PimEyes and its competitors index faces across the public web and let you search by face rather than
+    by image. Given a photo of a person, they return other photos of the same person from unrelated sites.
+  why: >-
+    *Why it's flagged, not recommended:* it works, it's paid, and it is the single most invasive capability
+    on this guide. It is **restricted or outright unlawful in several jurisdictions** — EU data-protection
+    regulators have taken action against exactly this — and searching a third party's face without a lawful
+    basis is a real legal exposure, not a theoretical one. Know the capability exists, because your adversaries
+    and your clients' harassers use it.
+  caution:
+    title: The defensive use is the legitimate one
+    body: >-
+      Searching your *own* face to find out where you appear online is both lawful and genuinely useful,
+      and PimEyes offers an opt-out for exactly that. Anything beyond that needs a documented lawful basis
+      and, in a professional context, written authorization.
+  verified:
+    date: '2026-11-23'
+- id: platform-search
+  name: Native platform search, used hard
+  section: 08-social
+  kind: free · practice
+  tier: start
+  summary: Each platform's own advanced search, which is often the only thing that still works.
+  what: >-
+    Each platform's own advanced search, which almost nobody uses to capacity. X/Twitter's advanced search
+    filters by account, date range, replies-to and geocode. Reddit supports `author:` and `subreddit:`.
+    LinkedIn filters by company, title and location. Facebook's search is weak but its *public* friend
+    lists and photo tags are not.
+  why: >-
+    *Why this leads now:* with the APIs closed, the native interface is frequently the **only** thing
+    that still works. A date-bounded advanced search on one account beats any scraper that 403s. Pair
+    with `site:` operators from section 04 to reach what the platform's own search hides.
+  verified:
+    date: '2026-11-23'
+- id: fediverse-bluesky
+  name: Mastodon, the Fediverse & Bluesky
+  section: 08-social
+  kind: free · sites + practice
+  tier: deeper
+  summary: Searching Mastodon, the wider Fediverse and Bluesky, which work differently from closed networks.
+  what: >-
+    The decentralized social networks work differently from the closed ones. **Mastodon** posts live on
+    whichever server the account joined, and full-text search of posts is opt-in per account, so search
+    is deliberately weak — work through hashtag timelines, the home server's public profile, and `site:`
+    operators. **Bluesky** profiles and posts are public by default and readable without an account, and
+    a handle can be verified through DNS, which makes the domain behind a custom handle a pivot back to
+    §05.
+  why: >-
+    *Why a separate entry:* the tools built for the closed platforms mostly don't reach here, and almost
+    no OSINT guide covers it. Bellingcat's toolkit lists **BskyFollowFinder** for mapping who follows
+    whom on Bluesky and **Hoaxy** for tracing how a link or claim spreads across Bluesky and X.
+  notes:
+  - >-
+    Bluesky: [bsky.app](https://bsky.app/) (no login to read) · Mastodon: the home server's `/@username`
+    page · both: archive first — [web.archive.org](https://web.archive.org/), [archive.today](https://archive.today/)
+  links:
+  - label: bsky.app
+    url: https://bsky.app/
+  - label: web.archive.org
+    url: https://web.archive.org/
+  - label: archive.today
+    url: https://archive.today/
+  caution:
+    title: Federation copies things
+    body: >-
+      A post deleted on one server can survive on others that already pulled it. Capture before you contact
+      or react, and remember that an account's home server is its jurisdiction — a report to a trust-and-safety
+      team goes to that server's admins.
+  verified:
+    date: '2026-11-23'
+- id: social-archives
+  name: Deleted posts & social archives
+  section: 08-social
+  kind: free · sites
+  tier: start
+  summary: Archives and caches that remember what people delete.
+  what: >-
+    People delete. Archives remember. The Wayback Machine holds snapshots of public profiles; archive.today
+    captures dynamic pages the Wayback Machine struggles with; Google and Bing caches occasionally hold
+    a recently-removed page; and third-party mirrors preserve deleted content on several platforms.
+  why: >-
+    *Why it's the highest-yield social technique:* the post someone deleted is almost always the interesting
+    one, and the act of deletion is itself a finding. **Archive first, read second** — the moment a subject
+    notices attention, things start disappearing.
+  notes:
+  - Same tools as §05 — [web.archive.org](https://web.archive.org/) and [archive.today](https://archive.today/)
+  links:
+  - label: web.archive.org
+    url: https://web.archive.org/
+  - label: archive.today
+    url: https://archive.today/
+  verified:
+    date: '2026-11-23'
+- id: telegram-discord
+  name: Telegram & Discord
+  section: 08-social
+  kind: free · sites + accounts
+  tier: deeper
+  summary: Where much threat-actor activity lives, and how to read it without joining in.
+  what: >-
+    Where a great deal of threat-actor and extremist activity actually lives. Telegram's public channels
+    are indexed by several third-party search sites and are genuinely open; Discord requires joining a
+    server but leaks user IDs, join dates and cross-server presence once you're in.
+  why: >-
+    *Why it's essential for threat intel:* ransomware leak sites, initial-access brokers, credential markets
+    and hacktivist coordination run on these platforms now, and monitoring them is mainstream CTI work.
+    **Telegram usernames pivot straight back to section 01**, and the same handle is often reused across
+    markets and forums.
+  notes:
+  - >-
+    Telegram search engines and trackers listed by Bellingcat: Telegago, TGStat, Telemetrio, TelegramDB
+    — all browser-based, no install · Telepathy is listed there as unmaintained, so it is on the Skip
+    list
+  caution:
+    title: Joining is participation
+    body: >-
+      Entering a server or channel is active, logged, and visible to admins. Use a burner identity on
+      a separate machine, never interact, and be clear on your authorization — passively reading a public
+      channel and engaging with a criminal marketplace are very different acts, legally and ethically.
+  verified:
+    date: '2026-11-23'
+- id: bot-detection
+  name: Telling a real account from a fake one
+  section: 08-social
+  kind: free · practice
+  tier: deeper
+  summary: Tell real accounts from fake ones by observable behaviour, not by a bot score.
+  what: >-
+    Judged on behaviour, not vibes. The signals that actually discriminate: **creation date versus activity
+    volume** (an account made last month with 8,000 posts), **posting rhythm** (activity at a constant
+    rate around the clock, or confined to one timezone's working hours regardless of claimed location),
+    **a profile photo that reverse-image-searches** to a stock library or another person, **follower-to-following
+    ratio and follower quality**, and near-identical phrasing appearing across accounts within minutes.
+  why: >-
+    *Why no tool is listed:* the automated "bot score" services are unreliable and several well-known
+    ones have shut down or gone paid with no transparency about their model. The manual signals above
+    are more defensible and you can show your work. **Coordination is the stronger finding anyway** —
+    one suspicious account proves little; fifty accounts posting the same sentence within a two-minute
+    window is a network, and that's what you report.
+  caution:
+    title: '"Bot" is a conclusion, not an observation'
+    body: >-
+      Record what you saw — creation date, posting frequency, reused photo — and let the label follow.
+      Plenty of real people post constantly, use a stock avatar, or have few followers; calling a real
+      person's account fake in a published finding is the kind of error that ends credibility.
+  verified:
+    date: '2026-11-23'
+- id: darkweb
+  name: Dark-web research, safely
+  section: 08-social
+  kind: free · Tor + sites
+  tier: gated
+  summary: Leak-site trackers first, Tor in a disposable VM only if you must.
+  what: >-
+    Where leaked data, ransomware victim postings and criminal marketplaces are published. **Ahmia** indexes
+    onion sites and is reachable from the clear web; **ransomware leak-site trackers** (ransomwatch and
+    similar) aggregate victim postings so you don't have to visit the sites at all; several CTI vendors
+    publish free dark-web search front ends.
+  why: >-
+    *Why the clear-web mirrors come first:* for most questions — "has my organization been named on a
+    leak site," "is this breach real" — a tracker answers it without ever opening Tor. Go direct only
+    when the tracker doesn't cover it, and then through **Tor Browser in a disposable VM**, never your
+    daily machine.
+  notes:
+  - '[ahmia.fi](https://ahmia.fi/) — clear-web onion index, filters known-abusive content'
+  links:
+  - label: ahmia.fi
+    url: https://ahmia.fi/
+  caution:
+    title: Reading is not the risk; interacting is
+    body: >-
+      Downloading leaked data, registering on a marketplace, or contacting a seller moves you from observation
+      to participation and can be a criminal offence regardless of intent. Never download a breach dump
+      "to verify it," never create an account on a criminal forum without explicit written authorization,
+      and know that some content is illegal to possess the instant it renders.
+  verified:
+    date: '2026-11-23'
+- id: hibp
+  name: Have I Been Pwned
+  section: 09-breach-credentials
+  kind: free · site + paid API
+  tier: start
+  summary: 'The ethical breach index: which breaches an address is in, never the passwords.'
+  what: >-
+    The reputable, ethical breach index. Tells you which breaches an address appears in and what data
+    classes each exposed — but never shows you a password. **Domain search** lets a verified domain owner
+    see every breached address across their whole organization, which is the defensive killer feature.
+  why: >-
+    *Why it's the one to start with:* run by Troy Hunt, transparent about sources, and deliberately designed
+    not to be an attack tool. For your own exposure and your own domain it's free and authoritative. The
+    API is paid but cheap, and the k-anonymity password endpoint lets you check passwords without ever
+    sending one.
+  links:
+  - label: haveibeenpwned.com
+    url: https://haveibeenpwned.com/
+  verified:
+    date: '2026-11-23'
+- id: breach-search
+  name: Commercial breach-data search
+  section: 09-breach-credentials
+  kind: paid · sites
+  tier: gated
+  summary: >-
+    Paid indexes that return breached records themselves. Powerful, and one subpoena from your worst browser
+    history.
+  what: >-
+    DeHashed, Intelligence X, Snusbase and similar go further than HIBP: they index the breach *contents*
+    and let you search by email, username, name, phone, IP or hashed password, returning the actual records.
+    Intelligence X additionally archives darknet, document and leak material with its own historical snapshots.
+  why: >-
+    *Why these are gated here:* they are powerful, they are used legitimately by CTI teams and incident
+    responders every day, and they are also one subpoena away from being the worst thing in your browser
+    history if you can't explain why you ran a query. Subscription-based, and you should be able to justify
+    every lookup.
+  caution:
+    title: Searching is not the same as using
+    body: >-
+      Querying breach data about your own organization under authorization is normal professional work.
+      Using a credential you found to *log into* anything is unauthorized access — a serious criminal
+      offence in essentially every jurisdiction, regardless of how the password reached you. The line
+      is bright and it is not about where the data came from.
+  verified:
+    date: '2026-11-23'
+- id: self-exposure
+  name: Run this whole guide on yourself
+  section: 09-breach-credentials
+  kind: free · practice
+  tier: start
+  summary: 'Run this whole guide against yourself: the best exercise on the list.'
+  what: >-
+    Take your own name, your own handles, your own email and work sections 01 through 08 against yourself
+    (and 10 if you write code). Write down everything you find and where it came from.
+  why: >-
+    *Why it's the best exercise on the page:* you have ground truth. You know which hits are wrong, which
+    aggregator merged you with a stranger, and which forgotten 2014 account is still sitting there with
+    your real name on it — so you learn what these sources actually do, not what they claim.
+  verified:
+    date: '2026-11-23'
+- id: github-dorking
+  name: GitHub code search & dorking
+  section: 10-code-and-apps
+  kind: free account · site
+  tier: start
+  summary: GitHub code search qualifiers for finding committed secrets and internal naming.
+  what: >-
+    GitHub's code search reads the contents of public repositories, and its qualifiers make it a targeted
+    instrument: `org:`, `user:`, `language:`, `path:`, `filename:`. Combine an organization's name or
+    domain with the shape of a secret — `"example.com" AND (password OR api_key OR BEGIN RSA)`, or `filename:.env`,
+    `filename:config.json`, `path:.aws credentials`.
+  why: >-
+    *Why it's the first stop:* a single committed `.env` file can contain a live database password, and
+    people commit them weekly. Beyond credentials it maps an organization's internal naming — hostnames,
+    service names, staff usernames in commit metadata, which cloud provider they use. **Commit history
+    is the sharp edge**: a secret deleted in a later commit is still in the history and still searchable.
+  notes:
+  - Signed-in search at [github.com/search](https://github.com/search) — needs an account for code search
+  links:
+  - label: github.com/search
+    url: https://github.com/search
+  caution:
+    title: Finding a credential is where you stop
+    body: >-
+      A live key in a public repo is a *finding*, to be reported to its owner. Using it is unauthorized
+      access and a criminal offence — the fact that it was published by accident changes nothing. Report
+      through a security.txt contact, a bug-bounty program, or the repo owner directly.
+  verified:
+    date: '2026-11-23'
+- id: code-search-engines
+  name: grep.app, Sourcegraph, GitLab & Searchcode
+  section: 10-code-and-apps
+  kind: free tier · sites
+  tier: deeper
+  summary: grep.app, Sourcegraph, GitLab and Searchcode reach code GitHub search does not.
+  what: >-
+    GitHub is not the only forge, and its own search has quirks. **grep.app** does fast literal and regex
+    search across a large slice of public GitHub with no login at all — the quickest way to test whether
+    a distinctive string exists anywhere. **Sourcegraph** searches across multiple hosts with real structural
+    queries. **GitLab** and **Searchcode** reach repos GitHub-only searching never sees.
+  why: >-
+    *Why run more than one:* each indexes a different corpus, and a secret pushed to a self-hosted GitLab
+    mirror or an obscure forge is exactly the one nobody has found yet. grep.app's regex support is also
+    better for hunting a pattern — an internal hostname format, a key prefix — rather than a known string.
+  notes:
+  - >-
+    [grep.app](https://grep.app/) · [sourcegraph.com](https://sourcegraph.com/search) · [gitlab.com/search](https://gitlab.com/search)
+    · [searchcode.com](https://searchcode.com/)
+  links:
+  - label: grep.app
+    url: https://grep.app/
+  - label: sourcegraph.com
+    url: https://sourcegraph.com/search
+  - label: gitlab.com/search
+    url: https://gitlab.com/search
+  - label: searchcode.com
+    url: https://searchcode.com/
+  verified:
+    date: '2026-11-23'
+- id: secret-scanners
+  name: TruffleHog
+  section: 10-code-and-apps
+  kind: free · local tools
+  tier: deeper
+  summary: Scan a repo's full history for credentials and test whether they still work.
+  what: >-
+    Automate the above against a repo you can clone. **TruffleHog** walks the **entire commit history**
+    looking for credential patterns — hundreds of detectors for specific providers — and then *verifies*
+    many of the keys it finds by testing whether they still authenticate, which separates a dead 2019
+    token from a live one.
+  why: >-
+    *Why verification is the whole value (TruffleHog v3.99 as of November 2026):* raw regex scanning produces
+    overwhelming false positives, and a report full of expired keys gets ignored. "Seventeen matches,
+    three still valid" is actionable. Point these at your own organization's repos on a schedule — this
+    is the defensive use, and it's the one you'll run most.
+  install:
+  - os: macOS
+    cmd: brew install trufflehog
+  - os: Docker
+    cmd: docker run --rm -it trufflesecurity/trufflehog:latest github --repo https://github.com/<org>/<repo>
+  - os: Win/Linux
+    note: download the release for your OS from github.com/trufflesecurity/trufflehog/releases
+  - os: Run local
+    cmd: trufflehog git file://. --only-verified
+  notes:
+  - >-
+    Upstream's README also shows a curl-to-shell installer; this guide prefers brew, Docker or the release
+    binary so you can inspect what you run.
+  links:
+  - label: github.com/<org
+    url: https://github.com/<org
+  - label: github.com/trufflesecurity/trufflehog
+    url: https://github.com/trufflesecurity/trufflehog
+  github: trufflesecurity/trufflehog
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: apk-analysis
+  name: Pulling intelligence out of a mobile app
+  section: 10-code-and-apps
+  kind: free · local tools
+  tier: gated
+  summary: 'Static analysis of an Android app: endpoints, keys, trackers, permissions, signing details.'
+  what: >-
+    An APK is a zip file full of evidence. Static analysis surfaces the **backend endpoints** the app
+    talks to (frequently including staging and internal APIs), **hardcoded keys and tokens**, the **third-party
+    SDKs and trackers** embedded in it, the permissions it requests, and signing-certificate details that
+    link separate apps to one developer.
+  why: >-
+    *Why it's an OSINT source and not just an appsec task:* the endpoint list is an attack-surface map
+    the organization never published, and the SDK inventory tells you who they share data with. **MobSF**
+    is the standard one-stop analyzer; **apktool** and **jadx** do the decompilation by hand; **Exodus
+    Privacy** gives you the tracker list with no install at all. Gated here because it needs a sandbox,
+    real time, and clear authorization.
+  install:
+  - os: Docker
+    cmd: docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest
+    note: (then open http://localhost:8000)
+  - os: macOS
+    cmd: brew install jadx
+  - os: Linux
+    cmd: sudo apt install jadx
+    note: (Kali) — or the release zip
+  - os: Windows
+    note: download the jadx release zip from github.com/skylot/jadx/releases
+  notes:
+  - >-
+    [MobSF](https://github.com/MobSF/Mobile-Security-Framework-MobSF) in Docker · [jadx](https://github.com/skylot/jadx)
+    for readable decompiled source · [Exodus Privacy](https://reports.exodus-privacy.eu.org/) for the
+    tracker report with no install at all.
+  links:
+  - label: MobSF
+    url: https://github.com/MobSF/Mobile-Security-Framework-MobSF
+  - label: jadx
+    url: https://github.com/skylot/jadx
+  - label: Exodus Privacy
+    url: https://reports.exodus-privacy.eu.org/
+  github: MobSF/Mobile-Security-Framework-MobSF
+  caution:
+    title: Analyze in a VM, and check the licence
+    body: >-
+      Run an unknown APK's analysis in a disposable VM, never install it on a real device, and remember
+      that reverse-engineering a third party's app may breach its terms of service or local law even when
+      the file is public.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: block-explorers
+  name: Block explorers — read the ledger directly
+  section: 11-wallets-tokens
+  kind: free · sites
+  tier: start
+  summary: 'Read any chain''s ledger directly: transactions, counterparties and the first funding source.'
+  what: >-
+    One explorer per chain, all free, no account: **Etherscan** (and the equivalent Arbiscan / BscScan
+    / Polygonscan), **mempool.space** or Blockchain.com for Bitcoin, **Solscan** for Solana, **Tronscan**
+    for Tron. Paste an address and you get every transaction it has ever made, its current balance, its
+    counterparties, and the first time it was funded.
+  why: >-
+    *Why the first funding transaction matters most:* a fresh scam wallet had to get its gas from somewhere,
+    and that source is frequently an **exchange withdrawal** — which means a KYC'd account, which means
+    a real identity sitting behind a subpoena. You can't see who; you can see *which exchange*, and that's
+    the finding. Etherscan's labels also flag known exchange, bridge and mixer addresses for you.
+  notes:
+  - >-
+    [etherscan.io](https://etherscan.io/) · [mempool.space](https://mempool.space/) · [solscan.io](https://solscan.io/)
+  links:
+  - label: etherscan.io
+    url: https://etherscan.io/
+  - label: mempool.space
+    url: https://mempool.space/
+  - label: solscan.io
+    url: https://solscan.io/
+  verified:
+    date: '2026-11-23'
+- id: chain-tracing
+  name: Visual tracing & address clustering
+  section: 11-wallets-tokens
+  kind: free tier · sites
+  tier: deeper
+  summary: Graph tools that draw fund flows and cluster addresses into entities.
+  what: >-
+    Following funds through dozens of hops in a table is unworkable; these draw it as a graph. **Breadcrumbs**
+    and **MetaSleuth** both have usable free tiers for tracing a flow, tagging addresses and saving an
+    investigation. **Arkham** and **Nansen** add entity labels that attribute clusters of addresses to
+    named exchanges, funds and protocols.
+  why: >-
+    *What clustering actually gives you:* one actor usually controls many addresses, and common-input
+    heuristics group them — turning forty addresses into one entity you can reason about. The commercial
+    ceiling is Chainalysis and TRM, which is where law enforcement works; **the free tools get you most
+    of the way for a single scam trace**. Expect the trail to end at a mixer or a cross-chain bridge,
+    and say so plainly when it does rather than guessing past it.
+  notes:
+  - >-
+    [breadcrumbs.app](https://www.breadcrumbs.app/) · [metasleuth.io](https://metasleuth.io/) · [intel.arkm.com](https://intel.arkm.com/)
+  links:
+  - label: breadcrumbs.app
+    url: https://www.breadcrumbs.app/
+  - label: metasleuth.io
+    url: https://metasleuth.io/
+  - label: intel.arkm.com
+    url: https://intel.arkm.com/
+  verified:
+    date: '2026-11-23'
+- id: rugpull-checks
+  name: Token & rug-pull checks
+  section: 11-wallets-tokens
+  kind: free · sites
+  tier: start
+  summary: Contract and liquidity checks that tell you whether a token is a trap.
+  what: >-
+    Before tracing anything, establish whether the token itself is a trap. The checks that matter: is
+    the contract **verified and its source published**; is liquidity **locked or burned**, or can the
+    deployer withdraw it; does the code contain a **mint, blacklist, or transfer-tax function** the owner
+    can flip; and is the supply concentrated in a handful of wallets. **Token Sniffer**, **GoPlus** and
+    **DEXTools** automate most of this; **rugcheck.xyz** covers Solana.
+  why: >-
+    *Why it's the fast verdict:* an unverified contract holding unlocked liquidity with 90% of supply
+    in the deployer's wallet is a rug pull that hasn't happened yet, and you can establish that in two
+    minutes. Also cross-check the *team* — a "doxxed" founder whose photo reverse-image-searches to a
+    stock library (§07) or whose LinkedIn was created last month (§08) settles it without touching the
+    chain at all.
+  notes:
+  - >-
+    [tokensniffer.com](https://tokensniffer.com/) · [GoPlus token security](https://gopluslabs.io/token-security)
+    · [rugcheck.xyz](https://rugcheck.xyz/)
+  links:
+  - label: tokensniffer.com
+    url: https://tokensniffer.com/
+  - label: GoPlus token security
+    url: https://gopluslabs.io/token-security
+  - label: rugcheck.xyz
+    url: https://rugcheck.xyz/
+  caution:
+    title: None of this is financial advice, and a clean report is not a safe token
+    body: >-
+      These scanners check contract mechanics, not intent. A technically clean contract can still be run
+      by someone who walks away with the money. This section is for *investigating* a scam, not for deciding
+      what to buy.
+  verified:
+    date: '2026-11-23'
+- id: air-tracking
+  name: Flightradar24, FlightAware & ADS-B Exchange
+  section: 12-tracking
+  kind: free tier · sites
+  tier: start
+  summary: Live and historical aircraft positions from transponder broadcasts.
+  what: >-
+    Live and historical aircraft positions, built from the transponder broadcasts aircraft send in the
+    clear. Flightradar24 and FlightAware have the friendliest interfaces and the deepest history behind
+    a paywall; ADS-B Exchange is the community-fed alternative. **GPSJam** maps where GPS signals are
+    being jammed or spoofed, inferred from aircraft reporting poor navigation accuracy.
+  why: >-
+    *Why it's an investigative source:* an aircraft registration (the tail number) ties to an owner record,
+    and a flight history ties that owner to places and dates. Cross-check the registration against the
+    civil-aviation register for its country. **Know what you're citing:** ADS-B Exchange was acquired
+    by JETNET in 2023, so its "unfiltered" reputation is history (see the Skip list), and military or
+    blocked aircraft are missing or delayed on every one of these.
+  notes:
+  - >-
+    [flightradar24.com](https://www.flightradar24.com/) · [flightaware.com](https://www.flightaware.com/)
+    · [globe.adsbexchange.com](https://globe.adsbexchange.com/) · [gpsjam.org](https://gpsjam.org/) —
+    no install
+  links:
+  - label: flightradar24.com
+    url: https://www.flightradar24.com/
+  - label: flightaware.com
+    url: https://www.flightaware.com/
+  - label: globe.adsbexchange.com
+    url: https://globe.adsbexchange.com/
+  - label: gpsjam.org
+    url: https://gpsjam.org/
+  caution:
+    title: Public data, private people
+    body: >-
+      A private jet's movements are public, and a pattern of one person's movements is still a profile
+      of one person. Keep the question about the aircraft or the event, and don't publish a live position
+      for anything that could put someone at risk.
+  verified:
+    date: '2026-11-23'
+- id: ship-tracking
+  name: MarineTraffic, VesselFinder, Equasis & Global Fishing Watch
+  section: 12-tracking
+  kind: free tier · sites
+  tier: start
+  summary: AIS vessel positions plus the registry layer behind them.
+  what: >-
+    Vessel positions from AIS, the ship-to-ship broadcast system, plus the registry layer behind them.
+    **MarineTraffic** and **VesselFinder** show live and recent tracks. **Equasis** (free account) gives
+    the vessel's IMO number, flag, owner and manager, and inspection history. **Global Fishing Watch**
+    is free and maps fishing activity and gaps in AIS coverage.
+  why: >-
+    *Why the registry layer matters:* a name can change, but the IMO number stays with the hull, so Equasis
+    is how you follow a ship through renamings and reflaggings. **An AIS gap is a lead, not proof** —
+    coverage is patchy and transponders fail — but a ship that goes dark repeatedly near the same place
+    is exactly what sanctions and fisheries investigators look for.
+  notes:
+  - >-
+    [marinetraffic.com](https://www.marinetraffic.com/) · [vesselfinder.com](https://www.vesselfinder.com/)
+    · [equasis.org](https://www.equasis.org/) · [globalfishingwatch.org](https://globalfishingwatch.org/)
+    — no install; Equasis needs a free account
+  links:
+  - label: marinetraffic.com
+    url: https://www.marinetraffic.com/
+  - label: vesselfinder.com
+    url: https://www.vesselfinder.com/
+  - label: equasis.org
+    url: https://www.equasis.org/
+  - label: globalfishingwatch.org
+    url: https://globalfishingwatch.org/
+  verified:
+    date: '2026-11-23'
+- id: sat-free
+  name: Free satellite imagery — Copernicus, NASA Worldview & FIRMS, Google Earth Pro
+  section: 12-tracking
+  kind: free · sites + desktop app
+  tier: start
+  summary: Free satellite imagery from Copernicus, NASA and similar sources.
+  what: >-
+    The free layer of looking at a place from above. The **Copernicus Browser** serves Sentinel imagery
+    (about 10 m per pixel, revisited every few days) with a time slider. **NASA Worldview** is daily,
+    coarse and global, and **NASA FIRMS** maps detected thermal anomalies, i.e. fires. **Google Earth
+    Pro** (free desktop) holds years of historical high-resolution imagery you can scrub through.
+  why: >-
+    *Why they're complementary:* Sentinel and Worldview tell you *when something changed* at the scale
+    of a field, a burn scar or a flooded plain; Earth Pro tells you what it looked like in detail on some
+    earlier date. None of the free sources will show a vehicle, and cloud cover is the usual reason a
+    date you wanted is useless.
+  install:
+  - os: Sites
+    note: browser.dataspace.copernicus.eu · worldview.earthdata.nasa.gov · firms.modaps.eosdis.nasa.gov
+  - os: Windows
+    cmd: winget install Google.EarthPro
+  - os: macOS
+    cmd: brew install --cask google-earth-pro
+  - os: Linux
+    note: download the .deb from google.com/earth/versions
+  notes:
+  - Earth Pro's winget ID was not machine-checked; the Homebrew cask was. The imagery sites need no install.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: sat-commercial
+  name: High-resolution and radar imagery
+  section: 12-tracking
+  kind: paid · sites
+  tier: gated
+  summary: 'High-resolution and radar imagery you can order: Planet, SkyFi, Umbra.'
+  what: >-
+    **Planet** (frequent, mid-resolution), **SkyFi** (order a specific tasking or archive scene by credit
+    card) and **Umbra** (synthetic-aperture radar, which sees through cloud and at night) sell what the
+    free tier can't: detail, frequency and all-weather coverage.
+  why: >-
+    *Why know them:* they're what published investigations of military build-ups and port activity are
+    built on, and a small purchase is sometimes cheaper than the hours of free-imagery guesswork. Pricing
+    and access terms change often — check each site rather than trusting a list.
+  notes:
+  - >-
+    [planet.com](https://www.planet.com/) · [skyfi.com](https://www.skyfi.com/) · [umbra.space](https://umbra.space/)
+  links:
+  - label: planet.com
+    url: https://www.planet.com/
+  - label: skyfi.com
+    url: https://www.skyfi.com/
+  - label: umbra.space
+    url: https://umbra.space/
+  verified:
+    date: '2026-11-23'
+- id: change-detection
+  name: Reading imagery — date, resolution, shadows, clouds
+  section: 12-tracking
+  kind: free · practice
+  tier: deeper
+  summary: 'Four questions to ask of any overhead image: date, resolution, shadows, what changed.'
+  what: >-
+    Four questions for any overhead image before you claim anything from it: **what date** is this scene
+    really, **what resolution** is it, **where do the shadows fall**, and **what is cloud or haze hiding**.
+    Compare two dates of the same place rather than interpreting one frame, and confirm with a ground-level
+    photo whenever one exists.
+  why: >-
+    *Why it's a step:* most wrong conclusions in this field come from reading a blurry pixel as a thing.
+    Shadow direction and length also date a scene — the sun tools in §07 (SunCalc, ShadeMap) work on satellite
+    shadows exactly as they do on photo shadows, and the two together locate and date an image.
+  notes:
+  - >-
+    Pair with §07 geolocation (Overpass Turbo, Mapillary, SunCalc) and §14 capture — save each scene with
+    its date and the viewer's own date label
+  verified:
+    date: '2026-11-23'
+- id: c2pa
+  name: Check provenance first — Content Credentials (C2PA)
+  section: 13-synthetic-media
+  kind: free · site + CLI
+  tier: start
+  summary: Verify a file's signed Content Credentials; a missing manifest means unknown, not clean.
+  what: >-
+    C2PA is a signed record, attached to a file by the camera, editor or AI tool that made it, of where
+    it came from and what was done to it. Drop a file into a Content Credentials verifier and it reads
+    and checks that record. **c2patool** is the open-source command-line version.
+  why: >-
+    *Why first:* when a manifest exists and verifies, it answers the question directly. **When it doesn't
+    exist it tells you nothing** — most files carry no credentials, and credentials can be stripped, so
+    a missing manifest means *unknown*, never *clean*.
+  install:
+  - os: All OS
+    cmd: cargo install c2patool
+    note: (needs Rust; or take a release binary from github.com/contentauth/c2pa-rs)
+  - os: Run
+    cmd: c2patool <file>
+  notes:
+  - '[verify.contentauthenticity.org](https://verify.contentauthenticity.org/) — free, browser-based'
+  links:
+  - label: verify.contentauthenticity.org
+    url: https://verify.contentauthenticity.org/
+  - label: github.com/contentauth/c2pa-rs
+    url: https://github.com/contentauth/c2pa-rs
+  github: contentauth/c2pa-rs
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: watermark-check
+  name: Vendor watermark checkers — SynthID, OpenAI, Meta
+  section: 13-synthetic-media
+  kind: free · sites
+  tier: start
+  summary: 'Vendor checkers for SynthID and similar marks: strong when positive, nearly useless when negative.'
+  what: >-
+    The big AI vendors mark what their own tools produce and publish a way to check. Google's **SynthID
+    Detector** reads Google's invisible watermark; OpenAI and Meta each offer a check for their own output.
+    Each recognizes only its own vendor's content.
+  why: >-
+    *Why they're a narrow tool:* a positive is strong evidence, a negative is nearly worthless. Reporting
+    has already shown these checks failing on a photographed screen and on cropped images, and watermark-stripping
+    tools exist. Use them to confirm a suspicion, never to clear a file.
+  notes:
+  - >-
+    Google SynthID Detector (synthid.com, or ask Gemini) · OpenAI and Meta verification pages — find the
+    current links from each vendor's own site, as the URLs have moved
+  verified:
+    date: '2026-11-23'
+- id: ai-detectors
+  name: AI-image detectors — Hive, AI or Not & friends
+  section: 13-synthetic-media
+  kind: free tier · sites
+  tier: deeper
+  summary: 'AI-image classifiers (Hive, AI or Not): one weak signal, never a finding.'
+  what: >-
+    Upload an image, get a probability that it's AI-generated. **Hive** is free and among the better-regarded
+    public ones; **AI or Not**, Illuminarty and Sightengine have free tiers or paid APIs.
+  why: >-
+    *Why "one signal":* the accuracy figures vendors quote are their own, and practitioners' consistent
+    finding is that there's still no reliable public detector for the best current AI video. Treat a score
+    as a prompt for human review, and require two or more *independent* indicators before you call something
+    synthetic.
+  notes:
+  - >-
+    [hivemoderation.com](https://hivemoderation.com/ai-generated-content-detection) · [aiornot.com](https://www.aiornot.com/)
+    — upload only what you have the right to upload (see the VirusTotal note in §05: uploading is disclosure)
+  links:
+  - label: hivemoderation.com
+    url: https://hivemoderation.com/ai-generated-content-detection
+  - label: aiornot.com
+    url: https://www.aiornot.com/
+  caution:
+    title: A detector score is not a finding
+    body: >-
+      Never publish "this is AI" on a detector's say-so alone. Record the tool, the date and the score
+      as an observation; the conclusion needs corroboration.
+  verified:
+    date: '2026-11-23'
+- id: image-forensics
+  name: Image forensics — FotoForensics, Forensically & ExifTool
+  section: 13-synthetic-media
+  kind: free · site + local
+  tier: deeper
+  summary: Error-level analysis, clone detection and metadata checks for manipulated images.
+  what: >-
+    Classic manipulation checks that work on any image: **error-level analysis** (FotoForensics, Forensically)
+    highlights regions that were compressed differently from the rest, Forensically also offers clone
+    detection and noise analysis, and **ExifTool** (§07) shows the editing software and timestamps.
+  why: >-
+    *Why they still matter:* they test the file rather than guess at the content, so they catch the ordinary
+    Photoshop edit and the recycled screenshot that an AI detector will pass. They are weaker against
+    fully generated images, and error-level analysis can mislead on heavily recompressed files — read
+    it as a hint.
+  notes:
+  - >-
+    [fotoforensics.com](https://fotoforensics.com/) · [29a.ch/photo-forensics](https://29a.ch/photo-forensics/)
+    — Forensically runs in the browser · ExifTool lines are in §07
+  links:
+  - label: fotoforensics.com
+    url: https://fotoforensics.com/
+  - label: 29a.ch/photo-forensics
+    url: https://29a.ch/photo-forensics/
+  verified:
+    date: '2026-11-23'
+- id: deepfake-audio-face
+  name: Face-swap and voice-clone checks
+  section: 13-synthetic-media
+  kind: free · sites
+  tier: deeper
+  summary: DeepFake-O-Meter and voice-clone detectors; keyframe search and callbacks often beat both.
+  what: >-
+    **DeepFake-O-Meter** (a university-run service) runs a clip through several open detectors at once
+    and shows where they disagree. **Hiya's Deepfake Voice Detector** is a browser extension for suspect
+    audio. For video, **InVID** (§07) breaks a clip into keyframes you can reverse-search.
+  why: >-
+    *Why they sit next to the image tools:* the strongest evidence is usually not the model's verdict
+    but a keyframe that reverse-searches to older footage, or a voice that fails a callback to a known
+    number. Detectors disagree, and that disagreement is itself worth recording.
+  notes:
+  - >-
+    [DeepFake-O-Meter](https://zinc.cse.buffalo.edu/ubmdfl/deep-o-meter/) · Hiya Deepfake Voice Detector
+    — Chrome extension store
+  links:
+  - label: DeepFake-O-Meter
+    url: https://zinc.cse.buffalo.edu/ubmdfl/deep-o-meter/
+  verified:
+    date: '2026-11-23'
+- id: two-indicators
+  name: The two-indicator rule — context beats classifiers
+  section: 13-synthetic-media
+  kind: free · practice
+  tier: start
+  summary: Call a file synthetic or authentic only on two independent indicators.
+  what: >-
+    Don't call a file synthetic or authentic on one signal. Collect indicators from different domains
+    — provenance, forensics, visual and physical consistency (hands, text, shadows, reflections), and
+    **context**: the earliest upload, the posting account, whether anyone credible was there. Two independent
+    indicators agreeing is a finding; one is a lead. Keep the original file and its hash.
+  why: >-
+    *Why context wins:* the tools above lose ground every time a new generator ships, while "where did
+    this first appear, and who benefits" does not age. Run the reverse-image and earliest-version steps
+    from §07 and the account checks from §08 before you reach for a classifier.
+  notes:
+  - >-
+    Observed (tool, date, score) → inferred (what you conclude) → confidence — keep the three in separate
+    columns of the §14 timeline
+  verified:
+    date: '2026-11-23'
+- id: capture
+  name: Capture discipline — the habit, then the tool
+  section: 14-tradecraft-and-analysis
+  kind: free · practice
+  tier: start
+  summary: Record URL, UTC time, screenshot and archive link the moment you find something.
+  what: >-
+    Every finding gets four things recorded at the moment you find it: the **full URL**, the **UTC timestamp**,
+    a **screenshot showing the URL bar**, and an **archive link**. Keep a running log — a plain markdown
+    file or an Obsidian vault is entirely sufficient — with one entry per finding and an explicit note
+    of which selector it came from.
+  why: >-
+    *Why it's item one here:* an investigation you can't reconstruct is worthless, and pages disappear
+    precisely when they matter. This also forces the discipline of separating *what you observed* from
+    *what you concluded* — the distinction that keeps an OSINT report honest.
+  verified:
+    date: '2026-11-23'
+- id: archivebox
+  name: ArchiveBox
+  section: 14-tradecraft-and-analysis
+  kind: free · local tool · Python / Docker
+  tier: deeper
+  summary: Self-hosted web archiver that keeps your own copies of pages you cite.
+  what: >-
+    A self-hosted web archiver. Feed it URLs and it saves each page several ways — HTML, a PDF, a screenshot,
+    a WARC, the media — into a folder you own, with a web UI to browse them.
+  why: >-
+    *Why it beats "screenshot it":* you get a copy that's searchable, hashed and independent of whether
+    the Wayback Machine happened to capture the page. It's the free, scriptable stand-in for Hunchly's
+    capture, and it can ingest a whole list of URLs from your case log in one command. Upstream describes
+    Docker Compose as its recommended install.
+  install:
+  - os: Docker
+    cmd: docker run -v $PWD/archive:/data -p 8000:8000 -it archivebox/archivebox init --setup
+    note: (then run it the same way with 'server')
+  - os: Linux/Mac
+    cmd: pipx install archivebox ; archivebox init ; archivebox add 'https://example.com'
+  - os: Windows
+    note: use the Docker line, or run the Linux line inside WSL — upstream lists no native Windows install
+  notes:
+  - >-
+    Upstream's page was read on 23 Nov 2026 and describes active development; the Homebrew formula the
+    guide expected does not exist, so it isn't listed. The Docker image tag and flags follow the project's
+    documented pattern — confirm against its README before relying on them.
+  links:
+  - label: example.com
+    url: https://example.com
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: singlefile
+  name: SingleFile
+  section: 14-tradecraft-and-analysis
+  kind: free · browser extension + CLI
+  tier: start
+  summary: Browser extension that saves a page as one self-contained HTML file.
+  what: >-
+    A browser extension that saves the page you're looking at into one self-contained HTML file — styles,
+    images and all — in a single click. Available for Chrome, Firefox, Edge and Safari, and as a command-line
+    tool for scripted capture.
+  why: >-
+    *Why it's the capture you'll actually use:* it works on logged-in and JavaScript-heavy pages that
+    a URL-based archiver can't reach, and one file is easy to hash and file under `capture/`. Use it for
+    what's on your screen, ArchiveBox for what you can fetch by address.
+  install:
+  - os: All OS
+    note: install from the Chrome Web Store, Firefox Add-ons or Edge Add-ons page for 'SingleFile'
+  - os: CLI
+    cmd: npm install -g single-file-cli
+    note: then single-file <url> out.html
+  github: gildas-lormeau/SingleFile
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: webrecorder
+  name: ArchiveWeb.page & Browsertrix (Webrecorder)
+  section: 14-tradecraft-and-analysis
+  kind: free tool · hosted option
+  tier: deeper
+  summary: Capture pages and sessions the way a browser actually saw them, with replayable archives.
+  what: >-
+    Webrecorder's tools capture the web the way a browser actually experienced it. **ArchiveWeb.page**
+    (a Chrome extension or desktop app) records everything you click through into a replayable file; **ReplayWeb.page**
+    plays those files back; **Browsertrix** automates the same thing at scale, with a hosted paid service.
+  why: >-
+    *Why it's the heavyweight option:* it preserves interaction — a scrolling feed, a map you panned —
+    in a standard archive format (WACZ) you can keep and re-open years later. For a single static page
+    SingleFile is quicker; for a social feed or an interactive page this is the tool.
+  notes:
+  - >-
+    [webrecorder.net](https://webrecorder.net/) — ArchiveWeb.page from the Chrome Web Store or as a desktop
+    app · Browsertrix is a hosted service with a free trial
+  links:
+  - label: webrecorder.net
+    url: https://webrecorder.net/
+  verified:
+    date: '2026-11-23'
+- id: hunchly
+  name: Hunchly
+  section: 14-tradecraft-and-analysis
+  kind: paid · browser extension
+  tier: gated
+  summary: Paid browser extension that auto-captures every page of a case with hashes and timestamps.
+  what: >-
+    Automates the above. Turn it on at the start of a case and it silently captures every page you visit
+    — full content, screenshot, hash, timestamp — into a case file, tracks your selectors, highlights
+    them across pages, and exports a report. Built specifically for investigators who may have to defend
+    their evidence.
+  why: >-
+    *Why it's the professional standard:* it removes the single biggest failure mode, which is forgetting
+    to capture something. **Maltego acquired Hunchly in May 2025**, so expect tighter integration with
+    Maltego graphs over time — worth factoring in if you're choosing a long-term workflow. Subscription-priced
+    — the Classic licence (local storage) is listed at €149 or $169 a year as of November 2026, with a
+    30-day free trial, and the site now carries Maltego Technologies' name; the free capture habit above
+    is the honest substitute until the work justifies it.
+  notes:
+  - '[hunch.ly](https://www.hunch.ly/) — free trial available'
+  links:
+  - label: hunch.ly
+    url: https://www.hunch.ly/
+  verified:
+    date: '2026-11-23'
+- id: maltego-osint
+  name: Maltego Community Edition
+  section: 14-tradecraft-and-analysis
+  kind: free account · local tool
+  tier: deeper
+  summary: Graph-based link analysis; the free edition is a learning tool, not a production one.
+  what: >-
+    Link analysis — the visual, graph-based way of doing everything on this guide. Drop an entity on the
+    canvas, run a Transform, and it fans out into related entities: domain to subdomains to IPs to certificates
+    to owners. The graph is the point; connections nobody was looking for become visible.
+  why: >-
+    *Current CE limits, September 2026:* free with a Maltego ID, up to **10,000 entities per graph** but
+    only **24 results per Transform**, with a baseline of 200 credits a month. That cap makes CE a learning
+    tool rather than a production one — which is genuinely fine, because the skill it teaches is thinking
+    in graphs. Maltego's own pricing page confirms the free Basic plan and its 200 monthly credits; the
+    entity and result caps above are as last checked in September, so re-verify them before quoting.
+  install:
+  - os: Windows
+    note: download the installer from maltego.com/downloads
+  - os: macOS
+    cmd: brew install --cask maltego
+  - os: Linux
+    note: preinstalled on Kali — or the .deb from maltego.com/downloads
+  notes:
+  - Needs the free Maltego ID either way.
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: spiderfoot
+  name: SpiderFoot
+  section: 14-tradecraft-and-analysis
+  kind: free · local tool · slowing
+  tier: deeper
+  summary: Automated OSINT across 200+ sources with a web UI. Stable but no longer advancing.
+  what: >-
+    Automated OSINT at scale. Point it at a domain, IP, email, name or phone number, pick your modules,
+    and it queries 200+ data sources and correlates everything into a browsable result set with a web
+    UI. The most complete "press go" OSINT automation that's free.
+  why: >-
+    *Know the status before you commit:* **Intel 471 acquired SpiderFoot in late 2022**, spiderfoot.net
+    now redirects to intel471.com, the commercial SpiderFoot HX folded into their platform, and open-source
+    development has visibly slowed — the tree has sat at v4.0 for some time. It still works and it's still
+    in Kali. Treat it as a capable, stable, no-longer-advancing tool rather than one to build a workflow
+    around.
+  install:
+  - os: All OS
+    cmd: git clone https://github.com/smicallef/spiderfoot ; cd spiderfoot ; pip install -r requirements.txt
+  - os: Run
+    cmd: python3 sf.py -l 127.0.0.1:5001
+    note: (then open http://127.0.0.1:5001)
+  - os: Kali
+    note: already installed
+  notes:
+  - >-
+    Use a virtual environment, and on Windows run it inside WSL — it is built and tested on Linux. Source
+    at github.com/smicallef/spiderfoot.
+  links:
+  - label: github.com/smicallef/spiderfoot
+    url: https://github.com/smicallef/spiderfoot
+  github: smicallef/spiderfoot
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: reconng
+  name: recon-ng
+  section: 14-tradecraft-and-analysis
+  kind: free · local tool · dormant
+  tier: deeper
+  summary: Recon framework with a module marketplace and a workspace database that persists across sessions.
+  what: >-
+    A reconnaissance framework built on the Metasploit model — a module marketplace, a workspace database,
+    and a console you drive interactively. Install the modules you need, set your API keys once, and the
+    results accumulate in a queryable local database across a whole engagement.
+  why: >-
+    *Honest status:* upstream has been at 5.1.2 and effectively dormant for years, though Kali still repackages
+    it (5.1.2-2 as of late 2025) and it runs fine. The **workspace database is the reason to still use
+    it** — nothing else on this guide accumulates findings across sessions the way it does. Learn it for
+    the model; don't expect new modules.
+  install:
+  - os: All OS
+    cmd: git clone https://github.com/lanmaster53/recon-ng ; cd recon-ng ; pip install -r REQUIREMENTS
+  - os: Run
+    cmd: python3 recon-ng
+  - os: Kali
+    note: preinstalled
+  notes:
+  - Source at github.com/lanmaster53/recon-ng. Best run on Linux or in WSL.
+  links:
+  - label: github.com/lanmaster53/recon-ng
+    url: https://github.com/lanmaster53/recon-ng
+  github: lanmaster53/recon-ng
+  verified:
+    date: '2026-11-23'
+    install_checked: partial
+- id: directories
+  name: Bellingcat's Online Investigation Toolkit
+  section: 14-tradecraft-and-analysis
+  kind: free · site
+  tier: start
+  summary: Bellingcat's curated toolkit directory, for the target types this guide does not cover.
+  what: >-
+    The curated directory to keep bookmarked — several hundred tools sorted by task and region, each with
+    a note on what it actually does, maintained by people who use them on real investigations. Covers
+    the long tail this guide deliberately doesn't: satellite imagery, maritime and flight tracking, regional
+    registries, archived TV.
+  why: >-
+    *Why this one specifically:* the venerable *OSINT Framework* mind-map that every tutorial links to
+    has aged badly and is full of dead links and defunct services. Bellingcat's toolkit is actively curated
+    and honest about what's broken. When you need a tool for a target type this guide doesn't cover, look
+    here first.
+  notes:
+  - '[bellingcat.gitbook.io/toolkit](https://bellingcat.gitbook.io/toolkit)'
+  links:
+  - label: bellingcat.gitbook.io/toolkit
+    url: https://bellingcat.gitbook.io/toolkit
+  verified:
+    date: '2026-11-23'
+- id: sockpuppet
+  name: A research identity that survives contact
+  section: 14-tradecraft-and-analysis
+  kind: free · practice · slow
+  tier: deeper
+  summary: What a usable research identity needs, why it must be aged, and the rules to check first.
+  what: >-
+    Several sections here need an account — viewing a LinkedIn profile, joining a Telegram channel, reading
+    a forum. That account must not be yours, and a blank one created this morning gets flagged or banned
+    immediately. A usable research identity needs: an **aged** account with ordinary activity behind it,
+    a profile photo that **does not reverse-image-search** (not a stock photo, not a real person's), a
+    consistent and boring backstory, its own email and number, and its own browser profile or VM that
+    never touches your real accounts.
+  why: >-
+    *Why "aged" is the hard requirement:* platform trust-and-safety weights account age and behavioural
+    history heavily, so the time to create these is **months before you need them** — an identity built
+    the day you need it is the one that gets locked mid-investigation.
+  caution:
+    title: Check the rules before the tradecraft
+    body: >-
+      A fake account breaches the terms of service of nearly every platform, which can mean a permanent
+      ban and, in some jurisdictions and some professional contexts, worse. Some engagements explicitly
+      forbid it. Never use one to *interact* — friending, messaging, or joining a private space is a different
+      act from reading — and never impersonate a real person or organization.
+  verified:
+    date: '2026-11-23'
+- id: timeline
+  name: Build the timeline — where analysis starts
+  section: 14-tradecraft-and-analysis
+  kind: free · practice
+  tier: start
+  summary: One UTC-ordered table of every dated finding, with observation and inference kept apart.
+  what: >-
+    Put every dated finding into one chronological table: timestamp (in **UTC**), what happened, the source
+    it came from, and your confidence in it. Domain registered. Account created. First post. Token deployed.
+    Funds moved. Site archived.
+  why: >-
+    *Why it's the step that turns collection into a conclusion:* a pile of facts proves nothing; the same
+    facts in order show *sequence*, and sequence is the argument. It also exposes your gaps and your contradictions
+    faster than rereading notes — two sources disagreeing about a date is visible instantly in a timeline
+    and invisible in a folder. Keep **observation and inference in separate columns**; a plain markdown
+    table or spreadsheet is entirely sufficient.
+  notes:
+  - >-
+    Mind the timezones: normalize everything to UTC as you record it, and note the original zone — a "same
+    day" that's actually two days apart has broken more findings than any tool failure
+  verified:
+    date: '2026-11-23'
+- id: verification
+  name: Verification — before you believe it
+  section: 14-tradecraft-and-analysis
+  kind: free · practice
+  tier: start
+  summary: Ask what would make a claim, image or source false before you rely on it.
+  what: >-
+    The discipline for a claim, an image, or a source you're about to rely on. For **media**: find the
+    earliest version (TinEye sorted oldest-first, §07), establish where and when it was actually taken,
+    and check whether it's real footage being recycled from an older event — the most common form of false
+    claim by far. For a **source**: who owns the outlet, does it publish corrections, does it have a named
+    masthead, and does any independent outlet carry the same story.
+  why: >-
+    *Why it's a cross-cutting item and not a section:* it applies to everything above. The reflex worth
+    building is **"what would make this false?"** asked before you add a finding to the timeline rather
+    than after you publish it. Lateral reading — leaving the page to check the claim elsewhere — beats
+    scrutinizing the page itself, every time. The **absence** of corroboration is itself a finding worth
+    recording.
+  notes:
+  - >-
+    Media Bias/Fact Check and Wikipedia's article on the outlet for ownership and track record · [Bellingcat's
+    case write-ups](https://www.bellingcat.com/category/resources/) are the best free training in how
+    the reasoning actually goes
+  links:
+  - label: Bellingcat's case write-ups
+    url: https://www.bellingcat.com/category/resources/
+  verified:
+    date: '2026-11-23'
+- id: monitoring
+  name: From one-off search to standing collection
+  section: 14-tradecraft-and-analysis
+  kind: free · sites + scripts
+  tier: deeper
+  summary: 'Standing collection: alerts, certificate feeds and scheduled diffs instead of one-off searches.'
+  what: >-
+    Most of this guide answers a question once. Monitoring answers it continuously. The free layer goes
+    a long way: **Google Alerts** for a name or phrase, **RSS** off anything that still publishes a feed,
+    **crt.sh** polled for newly issued certificates on your domain and its typosquats, **Have I Been Pwned
+    domain monitoring**, GitHub's own secret-scanning alerts, and a scheduled script hitting the APIs
+    from §05 into a log you diff.
+  why: >-
+    *Why the certificate feed is the one to set up first:* it tells you a lookalike domain exists the
+    day it's certified, usually days before any phishing email goes out — the earliest warning available
+    and it's free. **Tune ruthlessly:** a monitoring system that cries wolf gets ignored within a fortnight,
+    which is worse than not having it. Start with two or three high-signal queries and add only what earns
+    its place.
+  notes:
+  - >-
+    Google Alerts · [crt.sh](https://crt.sh/) RSS · [HIBP domain monitoring](https://haveibeenpwned.com/DomainSearch)
+    · a cron job and a diff covers the rest
+  links:
+  - label: crt.sh
+    url: https://crt.sh/
+  - label: HIBP domain monitoring
+    url: https://haveibeenpwned.com/DomainSearch
+  verified:
+    date: '2026-11-23'
+- id: standing-intel
+  name: MITRE ATT&CK, MISP & OpenCTI
+  section: 14-tradecraft-and-analysis
+  kind: free · site + Docker
+  tier: deeper
+  summary: 'MITRE ATT&CK, MISP and OpenCTI: where indicators go once you have them.'
+  what: >-
+    Where indicators go once you have them. **MITRE ATT&CK** is the shared vocabulary for how attackers
+    behave, so your report says "credential dumping" in terms everyone maps identically. **MISP** and
+    **OpenCTI** are open-source platforms for storing, linking and sharing indicators, both usually run
+    in Docker.
+  why: >-
+    *Why a defender's guide needs them:* an investigation produces domains, hashes and IPs, and a platform
+    gives them structure and a format (STIX) other tools and teams can consume. The learning curve is
+    steep, so stand one up locally for practice rather than meeting it for the first time on a job.
+  notes:
+  - >-
+    [attack.mitre.org](https://attack.mitre.org/) · [misp-project.org](https://www.misp-project.org/)
+    · [github.com/OpenCTI-Platform/opencti](https://github.com/OpenCTI-Platform/opencti) — follow each
+    project's own Docker deployment docs; not scripted here
+  links:
+  - label: attack.mitre.org
+    url: https://attack.mitre.org/
+  - label: misp-project.org
+    url: https://www.misp-project.org/
+  - label: github.com/OpenCTI-Platform/opencti
+    url: https://github.com/OpenCTI-Platform/opencti
+  github: OpenCTI-Platform/opencti
+  verified:
+    date: '2026-11-23'
+- id: berkeley-protocol
+  name: The Berkeley Protocol
+  section: 14-tradecraft-and-analysis
+  kind: free · reading
+  tier: start
+  summary: The UN human rights office's standard for digital open-source investigations.
+  what: >-
+    The UN human rights office's professional standard for digital open-source investigations, written
+    with the Human Rights Center at UC Berkeley. It sets out how to plan, collect, preserve, verify and
+    analyze online material so that it holds up in a legal or human-rights setting.
+  why: >-
+    *Why it's on a technical guide:* it names the method this whole guide is a toolbox for, in language
+    a court or an employer recognizes. Mapping your own loop (§00) to its six stages — online inquiry,
+    preliminary assessment, collection, preservation, verification, investigative analysis — is the quickest
+    way to make a writeup read as professional.
+  notes:
+  - >-
+    [ohchr.org — Berkeley Protocol](https://www.ohchr.org/en/publications/policy-and-methodological-publications/berkeley-protocol-digital-open-source)
+    — the page refuses automated fetching, so open it in a browser
+  links:
+  - label: ohchr.org — Berkeley Protocol
+    url: >-
+      https://www.ohchr.org/en/publications/policy-and-methodological-publications/berkeley-protocol-digital-open-source
+  verified:
+    date: '2026-11-23'
+- id: trace-labs
+  name: Trace Labs Search Party
+  section: 14-tradecraft-and-analysis
+  kind: free · practice · community event
+  tier: start
+  summary: Crowdsourced OSINT events that search for missing persons under strict rules.
+  what: >-
+    A crowdsourced OSINT event where teams gather public information to help locate missing persons, under
+    strict rules, with the results handed to law enforcement. Trace Labs describes it as OSINT only —
+    no contact with subjects and no pursuit of suspects.
+  why: >-
+    *Why it's the practice to seek out:* it's real casework with real rules and a scoring system, the
+    closest thing to supervised experience a student can get, and it's the kind of line a hiring manager
+    recognizes. Their page doesn't make the schedule or eligibility clear, so check it for the next event.
+  notes:
+  - >-
+    [tracelabs.org/initiatives/search-party](https://www.tracelabs.org/initiatives/search-party) — sign
+    up through their site
+  links:
+  - label: tracelabs.org/initiatives/search-party
+    url: https://www.tracelabs.org/initiatives/search-party
+  verified:
+    date: '2026-11-23'

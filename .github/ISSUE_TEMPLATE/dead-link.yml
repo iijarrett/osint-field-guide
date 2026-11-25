@@ -1,0 +1,22 @@
+name: Dead link or changed tool
+description: A link is dead, a tool moved, got acquired, went paid or stopped being maintained.
+labels: [maintenance]
+body:
+  - type: input
+    id: entry
+    attributes:
+      label: Entry id or name
+      placeholder: maigret
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What changed
+      description: Include the date you noticed and a link that shows it (a release page, announcement or archive snapshot).
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix

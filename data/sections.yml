@@ -1,0 +1,121 @@
+- id: 00-bench-and-loop
+  rank: '00'
+  title: 'Before you start: the bench and the loop'
+  intro: >-
+    Everything below the loop is the toolbox for steps 3 to 5. Install lines assume Windows 11 (PowerShell),
+    macOS (Homebrew) and Debian, Ubuntu or Kali. **Homebrew and PyPI names were checked against their
+    registries on 23 Nov 2026; winget IDs and apt names were not** — if one fails, `winget search <name>`
+    or `apt search <name>` finds the current one, and a row that says "All OS" is the same command on
+    all three.
+- id: 01-username
+  rank: '01'
+  title: You have a username
+  intro: >-
+    The single most productive starting selector there is. People reuse handles across a decade of accounts
+    without ever thinking about it — the gaming forum from 2013 and the professional profile from last
+    month share a name, and that link is usually the whole investigation. Run all three of these; they
+    use different site lists and disagree constantly.
+- id: 02-email
+  rank: '02'
+  title: You have an email address
+  intro: >-
+    An email address is the master key of the modern internet — it's the login for nearly everything,
+    so establishing which services it's registered at maps a person's whole digital footprint. Most of
+    the technique exploits the same design flaw: password-reset and sign-up flows leak whether an address
+    is known.
+- id: 03-phone
+  rank: '03'
+  title: You have a phone number
+  intro: >-
+    Weaker than an email in most investigations, but it has one property nothing else does: a number is
+    *tied to a legal identity and a physical place* in a way an email never is. It also unlocks the messaging
+    apps, which frequently expose a profile photo and display name to anyone who saves the contact.
+- id: 04-real-name
+  rank: '04'
+  title: You have a real name
+  intro: >-
+    The hardest selector to work, because names are not unique and the good sources are jurisdictional.
+    This is where OSINT stops being tool-driven and becomes records research — and where the ethical weight
+    gets heaviest, because everything here is about a specific identifiable human being.
+- id: 05-domain-ip-network
+  rank: '05'
+  title: You have a domain, IP, or network identifier
+  intro: >-
+    The largest section, and the one that does double duty — this is *both* pre-engagement recon for an
+    assessment and day-to-day threat-intel triage of a phishing domain. Same tools, opposite intent. Watch
+    the passive/active line closely here: several of these touch the target directly.
+- id: 06-organization
+  rank: '06'
+  title: You have a company or organization
+  intro: >-
+    Two halves that feed each other: the *corporate* record — who owns it, who directs it, what it filed
+    — and the *human* layer of who works there and what their email looks like. The second half is the
+    one that leads to a phishing simulation or a social-engineering assessment, which is why it's also
+    the half to understand defensively.
+- id: 07-photo-video
+  rank: '07'
+  title: You have a photo or video
+  intro: >-
+    Imagery is the most satisfying corner of OSINT and the one with the steepest skill curve — most of
+    it is looking carefully, not running something. Two separate questions live here: *where else does
+    this image appear*, and *where and when was it taken*.
+- id: 08-social
+  rank: 08
+  title: You have a social account or post
+  intro: >-
+    The hardest-hit area of OSINT in recent years. The API shutdowns of 2023 killed most of the automated
+    social tooling that guides still recommend, and what replaced it is manual work plus archives. Be
+    suspicious of any social OSINT tutorial that hasn't been updated recently — much of it now describes
+    tools that simply don't function.
+- id: 09-breach-credentials
+  rank: 09
+  title: You want breach & credential exposure
+  intro: >-
+    The section that runs in both directions most obviously. Checking an organization's exposed credentials
+    is standard pre-engagement work and standard defensive monitoring; the difference is entirely authorization.
+    It's also the section with the sharpest legal edge — see the caution below.
+- id: 10-code-and-apps
+  rank: '10'
+  title: You have source code, a repo, or an app
+  intro: >-
+    The section most OSINT guides leave out, and the one that most reliably finds something an organization
+    did not mean to publish. Developers commit credentials, internal hostnames, S3 buckets and API keys
+    constantly, and the search engines over public code are excellent. Same technique, two intents: an
+    attacker hunting a way in, and a defender auditing what their own team has leaked.
+- id: 11-wallets-tokens
+  rank: '11'
+  title: You have a wallet address or a token
+  intro: >-
+    Public blockchains are the most completely open source in this whole guide — every transaction, forever,
+    readable by anyone with no account. That makes tracing genuinely tractable, and it's why this section
+    exists: crypto scams, rug pulls and ransomware payments are ordinary casework now, not a specialism.
+- id: 12-tracking
+  rank: '12'
+  title: You have a ship, an aircraft, or a place seen from above
+  intro: >-
+    Aircraft and ships announce themselves on open radio channels, and satellites photograph everything
+    in daylight — so this is the most completely public section after blockchains, and the one where the
+    discipline is knowing what a source can't see. Position data is only as good as its coverage; imagery
+    is only as good as its date and resolution.
+- id: 13-synthetic-media
+  rank: '13'
+  title: You suspect a fake — AI-generated or manipulated media
+  intro: >-
+    A third of what's worth checking now isn't a person, a domain or a wallet — it's a clip or a photo
+    someone made up. The honest summary of this section is that **provenance tools are strong when they
+    exist, detectors are weak and getting weaker, and context is what holds up**. The picture is moving
+    quickly, so every tool here carries a re-verify-before-you-rely-on flag.
+- id: 14-tradecraft-and-analysis
+  rank: '14'
+  title: 'Cross-cutting: tradecraft, capture & analysis'
+  intro: >-
+    The layer that sits over all the sections above — what you set up before you start, how you record
+    what you find, how you turn findings into an argument, and how to keep watching once the one-off search
+    is done. Worth reading last and using from the first minute.
+- id: 15-skip
+  rank: '15'
+  title: Skip — and why
+  intro: >-
+    OSINT guides rot faster than any other kind, because they're lists of third-party services and services
+    die. These are the things you'll keep seeing recommended that are dead, broken, or a bad idea — revised
+    November 2026.

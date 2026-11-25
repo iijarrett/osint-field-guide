@@ -1,0 +1,69 @@
+<!-- Generated from data/*.yml by scripts/build_readme.py. Edit the data, not this file. -->
+
+[← Cross-cutting: tradecraft, capture & analysis](14-tradecraft-and-analysis.md) · [Index](../README.md)
+
+# 15. Skip — and why
+
+OSINT guides rot faster than any other kind, because they're lists of third-party services and services die. These are the things you'll keep seeing recommended that are dead, broken, or a bad idea — revised November 2026.
+
+**The OSINT Framework mind map**
+
+Still the first result for "OSINT tools" and still linked by half the tutorials out there, but it has not been meaningfully curated in years — a large fraction of the leaves are dead links or services that shut down. Use Bellingcat's toolkit instead.
+
+**Twitter/X scraping tools (twint and its forks)**
+
+twint was the standard and it has been non-functional since the API lockdown. Every "working fork" you find is either broken too or quietly requires a paid API key. Anything promising free bulk X data in 2026 is selling something. Use native advanced search and archives.
+
+**Censys Legacy Search endpoints**
+
+Not a bad tool — a dead one. Censys deprecated Legacy Search and the Legacy Search API in September 2026 in favor of the Censys Platform. Any tutorial, script or wrapper written before this year points at an endpoint that no longer answers. Check the date on anything Censys-related you copy.
+
+**"Free people search" sites promising full reports**
+
+The ones that show a teaser and demand payment are running the oldest funnel on the internet, and the data behind the paywall is the same stale aggregator record you can lead-generate for free. Worse, several harvest the search terms you enter. Go to the primary record instead.
+
+**ADS-B Exchange as the "unfiltered" tracker**
+
+Its whole reputation was being community-run and refusing to filter aircraft. JETNET acquired it in 2023, API access is commercial, and the independence that made it the recommended choice is gone. Still usable — just stop citing it as the unfiltered community alternative, because it isn't one.
+
+**Free all-in-one recon toolkits (Argus and its kind)**
+
+Argus bundles 135 modules behind one command and is actively maintained, so it looks like a shortcut. It isn't one: the modules are mostly wrappers around services this guide already covers, several need the same API keys you'd configure anyway, parts of it (the report generator among them) are incomplete, and the output doesn't tell you *which* source produced which answer — which quietly breaks the corroboration and capture discipline in [§12](12-tracking.md). Fine for a fast first sweep once you already know what each module is doing underneath. A bad place to learn, and a bad thing to cite.
+
+**gitGraber**
+
+A GitHub secret-monitoring tool that was genuinely good in its day — but its last substantive work was 2019, and its detection is regex against API-key formats that have since changed (GitHub reissued its own token format in 2021 alone). It will miss current keys silently. **TruffleHog in [§10](10-code-and-apps.md) does the same job and verifies whether what it finds still authenticates**, and GitHub's own secret scanning alerts you for free on repos you own.
+
+**LLM "investigation agents" with shell access**
+
+A growing genre — an autonomous agent that ingests public records, resolves entities and follows connection chains for you. The idea is sound and this category is worth watching. Today the specimens are tiny projects with double-digit star counts, glowing "reviews" on sites that read as generated, an LLM provider key that sends your investigation targets to a third party, and an agent granted shell execution on your machine. That combination fails the standard every other entry here is held to. Revisit when one has real adoption and a security review.
+
+**Automated "bot score" and fake-account detectors**
+
+Services that hand you a 0–100 bot probability for an account. The well-known ones have shut down, gone paid, or never published how the score is computed — and a number you can't explain is worthless the moment anyone challenges it. Judge on the observable behaviour in [§08](08-social.md) and show your working instead.
+
+**Crypto "fund recovery" services**
+
+Every one of these that finds you after you've been scammed is a second scam. Tracing stolen funds on-chain is free and public ([§11](11-wallets-tokens.md)); *recovering* them requires an exchange freeze or law enforcement, which no private service can deliver. The advance fee is the product. Report to the exchange and to your national cybercrime channel.
+
+**Paid "OSINT toolkits" and all-in-one subscriptions**
+
+A recurring genre: a dashboard that wraps free public sources and charges monthly for the convenience. Almost everything on this guide is free, and the paid things worth paying for (Hunchly, breach search, Shodan) are specific capabilities, not bundles. Learn the sources before you rent an interface to them.
+
+**AI-detector scores treated as proof**
+
+A percentage from an "is this AI?" tool is one signal, produced by a model whose accuracy figures come from its own vendor and that loses ground every time a new generator ships. Record the tool, the date and the score as an observation, and require a second, independent indicator before you call anything synthetic. See [§13](13-synthetic-media.md).
+
+**Install-everything OSINT "arsenal" scripts**
+
+Repositories that bundle dozens of tools behind one installer — often run as root, often pulling unpinned code, sometimes with remote-access or phishing tooling in the default set. You end up running dozens of programs you haven't read to get a few you wanted. A curated list with one readable install line per tool, like this guide, is the safer form of the same idea.
+
+**Telepathy and other unmaintained Telegram scrapers**
+
+Bellingcat's own toolkit lists Telepathy as unmaintained, and Telegram's client interfaces change often enough that an abandoned scraper fails silently or half-works. Use the search engines and trackers in [§08](08-social.md), and screenshot what you read.
+
+**Running any of this against a target you're not authorized to investigate**
+
+Not a tool, but it belongs on this list. Active recon without authorization is potentially unauthorized access; investigating a private individual without a lawful basis is potentially harassment or a data-protection breach. "It's public information" is not a legal defense for what you do next with it.
+
+[← Back to the index](../README.md)
