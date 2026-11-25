@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OSINT Pivot Map</title>
+<meta name="description" content="Pick what you already have and see what you can reach next, and which tools get you there.">
+<!-- Generated from data/pivots.yml and data/tools.yml by scripts/build_pivot_map.py. Edit the data, not this file. -->
+<style>
+/*FONTS*/
+:root {
+  --bg: #e1e2e7; --panel: #ecedf2; --line: #c3c7da; --fg: #343b58; --muted: #565e8c;
+  --accent: #2459b5; --accent-soft: #d3ddf3; --on-accent: #ffffff; --faint: #b4b9d1;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1b26; --panel: #202336; --line: #343a5a; --fg: #c0caf5; --muted: #98a2cc;
+    --accent: #7aa2f7; --accent-soft: #28315a; --on-accent: #1a1b26; --faint: #3a4166;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1a1b26; --panel: #202336; --line: #343a5a; --fg: #c0caf5; --muted: #98a2cc;
+  --accent: #7aa2f7; --accent-soft: #28315a; --on-accent: #1a1b26; --faint: #3a4166;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 400 16px/1.55 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+.mono, .label, .tier, .count, button.chip, .crumb, .go { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+h1 { font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 0; max-width: 85%; text-wrap: balance; letter-spacing: -.01em; }
+.stand { font-weight: 300; font-size: clamp(17px, 2.2vw, 21px); line-height: 1.5; margin: 0; max-width: 62ch; color: var(--fg); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.theme { align-self: flex-start; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 5px 10px; font: 600 11px "JetBrains Mono", monospace; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+.theme:hover { color: var(--fg); border-color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+h2 { font-size: 13px; margin: 0 0 12px; }
+.have { margin-bottom: 26px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+button.chip {
+  border: 1px solid var(--line); background: var(--panel); color: var(--fg); border-radius: 8px;
+  padding: 9px 13px; font-size: 13px; font-weight: 400; cursor: pointer; min-height: 40px;
+}
+button.chip:hover { border-color: var(--accent); }
+button.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+
+.trailbar[hidden] { display: none; }
+.trailbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 22px; min-height: 36px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.crumb { background: none; border: 0; padding: 2px 4px; font-size: 13px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.crumb[aria-current="true"] { color: var(--fg); font-weight: 600; text-decoration: none; cursor: default; }
+.sep { color: var(--muted); font-size: 13px; }
+.ghost { background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); padding: 5px 10px; font: 600 11px "JetBrains Mono", monospace; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.ghost:hover { color: var(--fg); border-color: var(--muted); }
+.toast { font-size: 12px; color: var(--muted); }
+
+.stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 36px; align-items: start; }
+.mapwrap { position: sticky; top: 16px; }
+#map { width: 100%; height: auto; display: block; overflow: visible; }
+#map .edge { fill: none; stroke: var(--faint); stroke-width: 1; opacity: .55; }
+#map .edge.on { stroke: var(--accent); opacity: 1; }
+#map .dot { fill: var(--panel); stroke: var(--muted); stroke-width: 1.5; cursor: pointer; }
+#map .nodeg:hover .dot { stroke: var(--accent); }
+#map .nodeg.sel .dot { fill: var(--accent); stroke: var(--accent); }
+#map .nodeg.reach .dot { stroke: var(--accent); }
+#map text { font: 400 15px "IBM Plex Sans", sans-serif; fill: var(--fg); cursor: pointer; }
+#map .nodeg.sel text { font-weight: 600; }
+#map .nodeg.dim text { fill: var(--muted); }
+#map .ring { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+.maphint { margin: 10px 0 0; font-size: 13px; color: var(--muted); max-width: 46ch; }
+
+.results h2 { font-size: 22px; font-weight: 600; letter-spacing: 0; text-transform: none; font-family: "IBM Plex Sans", sans-serif; color: var(--fg); margin-bottom: 4px; }
+.results .sub { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+.pivots { display: grid; gap: 12px; padding: 0; margin: 0; list-style: none; }
+.pivot { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 14px; min-width: 0; }
+.phead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+.go { background: none; border: 0; padding: 0; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
+.go:hover { text-decoration: underline; text-underline-offset: 3px; }
+.count { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.pivot p { margin: 0 0 10px; font-size: 15px; max-width: 60ch; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 0; padding: 0; list-style: none; }
+.tools li { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px 3px 9px; background: var(--bg); min-width: 0; }
+.tools a { color: var(--fg); font-size: 14px; line-height: 1.35; text-decoration: none; font-weight: 600; overflow-wrap: anywhere; }
+.tools a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.tier { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+.tier.start { background: var(--accent-soft); color: var(--accent); }
+.tier.deeper { border: 1px solid var(--line); color: var(--muted); }
+.note { margin: 10px 0 0 !important; font-size: 13.5px !important; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 10px; }
+.note b { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--fg); margin-right: 6px; }
+.dead { color: var(--muted); font-size: 15px; }
+
+footer { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); display: grid; gap: 10px; max-width: 70ch; font-size: 14.5px; color: var(--muted); }
+footer p { margin: 0; }
+footer a { color: var(--accent); text-underline-offset: 3px; }
+footer b { color: var(--fg); font-weight: 600; }
+noscript .static { margin-top: 20px; }
+noscript h3 { font-size: 16px; margin: 18px 0 6px; }
+noscript li { margin: 4px 0; }
+
+@media (max-width: 760px) {
+  .stage { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .mapwrap { display: none; }
+  h1 { max-width: 100%; }
+  body { padding-block: 28px 44px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #map .edge, #map .dot { transition: stroke .15s, opacity .15s, fill .15s; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="label">OSINT Field Guide &middot; companion</span>
+    <h1>Pivot map</h1>
+    <p class="stand">Pick what you already have. See what you can reach next and which tools get you there. Every hop is a lead until you verify it.</p>
+    <div class="meta"><span class="label" id="counts"></span></div>
+    <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Theme</button>
+  </header>
+
+  <section class="have" aria-labelledby="have-h">
+    <h2 class="label" id="have-h">I have</h2>
+    <div class="chips" id="chips" role="group" aria-label="Starting data type"></div>
+  </section>
+
+  <div class="trailbar" id="trailbar" hidden>
+    <span class="label">Trail</span>
+    <div class="crumbs" id="crumbs"></div>
+    <button class="ghost" id="copy" type="button">Copy trail</button>
+    <button class="ghost" id="clear" type="button">Clear</button>
+    <span class="toast" id="toast" role="status" aria-live="polite"></span>
+  </div>
+
+  <div class="stage">
+    <div class="mapwrap">
+      <svg id="map" viewBox="-20 0 600 560" role="img" aria-label="Map of data types. Lines show the pivots from the selected type."></svg>
+      <p class="maphint">Each dot is a kind of thing you can hold. Bright lines leave the selected one. A ring means you can pivot from it to more of the same kind.</p>
+    </div>
+    <section class="results" aria-live="polite" id="results"></section>
+  </div>
+
+  <noscript><div class="static">/*STATIC*/</div></noscript>
+
+  <footer>
+    <p><b>At every hop:</b> capture the page first, log what you found with the time, and verify it before it counts. The loop is in the <a href="https://github.com/iijarrett/osint-field-guide/blob/main/docs/00-bench-and-loop.md">bench and loop chapter</a>.</p>
+    <p>The guide also has a short gated tier for tools that are easy to misuse. It is left off this map on purpose, and each of those tools is documented in the guide itself.</p>
+    <p>Part of the <a href="https://github.com/iijarrett/osint-field-guide">OSINT Field Guide</a>. Built from <span class="mono">data/pivots.yml</span> and <span class="mono">data/tools.yml</span>. For lawful, authorized research only.</p>
+  </footer>
+</div>
+
+<script type="application/json" id="data">/*DATA*/</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("data").textContent);
+  var nodes = D.nodes, edges = D.edges;
+  var byId = {}; nodes.forEach(function (n) { byId[n.id] = n; });
+  var out = {}; nodes.forEach(function (n) { out[n.id] = []; });
+  edges.forEach(function (e) { out[e.from].push(e); });
+  var trail = [];
+
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    for (var k in (attrs || {})) {
+      if (k === "text") n.textContent = attrs[k];
+      else if (k === "class") n.className = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+  function svg(tag, attrs) {
+    var n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (var k in (attrs || {})) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function current() { return trail.length ? trail[trail.length - 1].node : null; }
+  function lower(s) { return s.charAt(0).toLowerCase() + s.slice(1); }
+
+  document.getElementById("counts").textContent =
+    nodes.length + " data types · " + edges.length + " pivots · " + D.toolCount + " tools";
+
+  /* Chips */
+  var chips = document.getElementById("chips");
+  nodes.forEach(function (n) {
+    var b = el("button", { type: "button", "class": "chip", "data-id": n.id, "aria-pressed": "false", text: n.short });
+    b.addEventListener("click", function () { start(n.id); });
+    chips.appendChild(b);
+  });
+
+  /* Map geometry */
+  var map = document.getElementById("map");
+  var CX = 280, CY = 280, R = 178;
+  var pos = {};
+  nodes.forEach(function (n, i) {
+    var a = -Math.PI / 2 + (2 * Math.PI * i) / nodes.length;
+    pos[n.id] = { x: CX + R * Math.cos(a), y: CY + R * Math.sin(a), a: a };
+  });
+  var pairs = {};
+  edges.forEach(function (e) {
+    if (e.from === e.to) return;
+    var k = e.from + ">" + e.to;
+    pairs[k] = (pairs[k] || 0) + 1;
+  });
+  var selfLoop = {};
+  edges.forEach(function (e) { if (e.from === e.to) selfLoop[e.from] = true; });
+
+  var defs = svg("defs");
+  var mk = svg("marker", { id: "arr", viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "6", markerHeight: "6", orient: "auto-start-reverse" });
+  mk.appendChild(svg("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--accent)" }));
+  defs.appendChild(mk); map.appendChild(defs);
+
+  var edgeEls = {};
+  Object.keys(pairs).forEach(function (k) {
+    var f = k.split(">")[0], t = k.split(">")[1];
+    var p1 = pos[f], p2 = pos[t];
+    var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
+    var cx = mx + (CX - mx) * 0.7, cy = my + (CY - my) * 0.7;
+    var path = svg("path", { "class": "edge", d: "M" + p1.x.toFixed(1) + "," + p1.y.toFixed(1) + " Q" + cx.toFixed(1) + "," + cy.toFixed(1) + " " + p2.x.toFixed(1) + "," + p2.y.toFixed(1) });
+    path.style.strokeWidth = (1 + 0.6 * (pairs[k] - 1)).toFixed(1);
+    map.appendChild(path); edgeEls[k] = path;
+  });
+  var nodeEls = {};
+  nodes.forEach(function (n) {
+    var p = pos[n.id];
+    var g = svg("g", { "class": "nodeg", tabindex: "0", role: "button", "aria-label": n.label });
+    if (selfLoop[n.id]) g.appendChild(svg("circle", { "class": "ring", cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 11 }));
+    g.appendChild(svg("circle", { "class": "dot", cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 6.5 }));
+    var cos = Math.cos(p.a), sin = Math.sin(p.a);
+    var tx = p.x + cos * 16, ty = p.y + sin * 16 + 4;
+    var anchor = Math.abs(cos) < 0.2 ? "middle" : (cos > 0 ? "start" : "end");
+    var t = svg("text", { x: tx.toFixed(1), y: ty.toFixed(1), "text-anchor": anchor });
+    t.textContent = n.short;
+    g.appendChild(t);
+    g.addEventListener("click", function () { start(n.id); });
+    g.addEventListener("keydown", function (ev) { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); start(n.id); } });
+    map.appendChild(g); nodeEls[n.id] = g;
+  });
+
+  function paintMap() {
+    var cur = current();
+    var reach = {};
+    (cur ? out[cur] : []).forEach(function (e) { reach[e.to] = true; });
+    Object.keys(edgeEls).forEach(function (k) {
+      var on = cur && k.split(">")[0] === cur;
+      edgeEls[k].setAttribute("class", "edge" + (on ? " on" : ""));
+      if (on) edgeEls[k].setAttribute("marker-end", "url(#arr)"); else edgeEls[k].removeAttribute("marker-end");
+    });
+    nodes.forEach(function (n) {
+      var cls = "nodeg";
+      if (n.id === cur) cls += " sel";
+      else if (reach[n.id]) cls += " reach";
+      else cls += " dim";
+      nodeEls[n.id].setAttribute("class", cls);
+    });
+  }
+
+  /* Trail and results */
+  var crumbs = document.getElementById("crumbs"), trailbar = document.getElementById("trailbar");
+  var results = document.getElementById("results");
+  var toast = document.getElementById("toast");
+
+  function paintTrail() {
+    crumbs.textContent = "";
+    trailbar.hidden = trail.length < 2;
+    trail.forEach(function (s, i) {
+      if (i) crumbs.appendChild(el("span", { "class": "sep", text: "→", "aria-hidden": "true" }));
+      var b = el("button", { type: "button", "class": "crumb", text: byId[s.node].short });
+      if (i === trail.length - 1) b.setAttribute("aria-current", "true");
+      b.addEventListener("click", function () { trail = trail.slice(0, i + 1); render(); });
+      crumbs.appendChild(b);
+    });
+  }
+
+  function paintResults() {
+    var cur = current();
+    results.textContent = "";
+    var n = byId[cur];
+    results.appendChild(el("h2", { text: "From " + lower(n.label) + " you can reach" }));
+    results.appendChild(el("p", { "class": "sub", text: out[cur].length + (out[cur].length === 1 ? " pivot" : " pivots") + ". Choose a result type to carry on from there." }));
+    var ul = el("ul", { "class": "pivots" });
+    out[cur].forEach(function (e) {
+      var same = e.to === e.from;
+      var head = el("div", { "class": "phead" });
+      var go = el("button", { type: "button", "class": "go", text: (same ? "↻ More " + lower(byId[e.to].short) : "→ " + byId[e.to].label) });
+      go.addEventListener("click", function () { step(e); });
+      head.appendChild(go);
+      head.appendChild(el("span", { "class": "count", text: e.tools.length + (e.tools.length === 1 ? " tool" : " tools") }));
+      var tools = el("ul", { "class": "tools" });
+      e.tools.forEach(function (t) {
+        var li = el("li");
+        li.appendChild(el("a", { href: t.url, target: "_blank", rel: "noopener", text: t.name }));
+        li.appendChild(el("span", { "class": "tier " + t.tier, text: t.tier }));
+        tools.appendChild(li);
+      });
+      var card = el("li", { "class": "pivot" }, [head, el("p", { text: e.label }), tools]);
+      if (e.note) {
+        var note = el("p", { "class": "note" });
+        note.appendChild(el("b", { text: "Careful" }));
+        note.appendChild(document.createTextNode(e.note));
+        card.appendChild(note);
+      }
+      ul.appendChild(card);
+    });
+    results.appendChild(ul);
+  }
+
+  function render() {
+    var cur = current();
+    Array.prototype.forEach.call(chips.children, function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-id") === trail[0].node));
+    });
+    paintMap(); paintTrail(); paintResults();
+    try { history.replaceState(null, "", "#" + trail[0].node); } catch (e) {}
+  }
+  function start(id) { trail = [{ node: id, via: null }]; toast.textContent = ""; render(); }
+  function step(e) { trail.push({ node: e.to, via: e }); render(); window.scrollTo({ top: document.querySelector(".have").offsetTop - 12, behavior: "smooth" }); }
+
+  document.getElementById("clear").addEventListener("click", function () { start(trail[0].node); });
+  document.getElementById("copy").addEventListener("click", function () {
+    var lines = [];
+    for (var i = 1; i < trail.length; i++) {
+      var e = trail[i].via;
+      lines.push(i + ". " + byId[trail[i - 1].node].short + " -> " + byId[trail[i].node].short + " (" + e.tools.map(function (t) { return t.name; }).join(", ") + ")");
+    }
+    var text = lines.join("\n");
+    function done(ok) { toast.textContent = ok ? "Copied." : "Select and copy from the trail above."; setTimeout(function () { toast.textContent = ""; }, 2500); }
+    try { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); }); } catch (err) { done(false); }
+  });
+
+  /* Theme toggle: cycles system -> light -> dark. */
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("theme");
+  var modes = ["system", "light", "dark"], mode = 0;
+  function applyTheme() {
+    if (modes[mode] === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", modes[mode]);
+    themeBtn.textContent = "Theme: " + modes[mode];
+  }
+  themeBtn.addEventListener("click", function () { mode = (mode + 1) % 3; applyTheme(); });
+  applyTheme();
+
+  var h = (location.hash || "").replace("#", "");
+  start(byId[h] ? h : nodes[0].id);
+})();
+</script>
+</body>
+</html>

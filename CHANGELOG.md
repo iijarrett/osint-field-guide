@@ -3,6 +3,17 @@
 Notable changes to the guide. Newest first. Tool-level changes (a tool added, dropped or re-rated) are recorded here;
 routine review-date updates are not.
 
+## 0.3.0, 2026-11-25
+
+- Added the pivot map: `data/pivots.yml` (14 kinds of thing an investigator can hold, 55 pivots between them, each
+  naming the guide tools that make the hop) and `scripts/build_pivot_map.py`, which generates
+  `docs/pivot-map.html` (one self-contained page, no network requests, light and dark themes, works on a phone) and
+  `docs/pivot-map.json` (the same graph with tool names and links resolved, for other sites to render).
+- The validator now checks the pivot data: every endpoint and tool must exist, workflow steps are not tools, and
+  gated tools are rejected so the map never names the gated tier.
+- CI checks that the generated pivot files are current. The page's fonts (IBM Plex Sans and JetBrains Mono, SIL Open
+  Font License) are kept in `scripts/fonts/` with their licenses.
+
 ## 0.2.2, 2026-11-25
 
 - WhatsMyName moved to the skip list: its author archived it on 9 November 2026. Blackbird's entry now says the

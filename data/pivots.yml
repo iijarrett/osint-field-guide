@@ -1,0 +1,275 @@
+# Pivot map data. Source of truth for docs/pivot-map.html and docs/pivot-map.json.
+#
+# nodes: the kinds of thing an investigator can hold (and can end up holding after a pivot).
+# edges: "from what you hold, to what you can reach, using these tools". Every id in `via` must be a
+#        tool in tools.yml, and gated tools are not allowed here: the map never names the gated tier.
+#        An edge may point back at its own node (a subdomain search from a domain reaches more domains).
+#
+# Rules are enforced by osintlib.validate_pivots. Keep notes short and say what the pivot returns, not what
+# it proves: every hit is a lead until it is verified (see the loop in docs/00-bench-and-loop.md).
+
+nodes:
+  - {id: username, label: A username, short: Username, section: 01-username}
+  - {id: email, label: An email address, short: Email, section: 02-email}
+  - {id: phone, label: A phone number, short: Phone, section: 03-phone}
+  - {id: name, label: A real name, short: Name, section: 04-real-name}
+  - {id: domain, label: A domain, short: Domain, section: 05-domain-ip-network}
+  - {id: ip, label: An IP address, short: IP, section: 05-domain-ip-network}
+  - {id: org, label: A company or organization, short: Organization, section: 06-organization}
+  - {id: image, label: A photo or video, short: Photo / video, section: 07-photo-video}
+  - {id: account, label: A social account or post, short: Account, section: 08-social}
+  - {id: exposure, label: "An exposure (breach, leak, open bucket)", short: Exposure, section: 09-breach-credentials}
+  - {id: repo, label: A code repository or app, short: Code, section: 10-code-and-apps}
+  - {id: wallet, label: A wallet address or token, short: Wallet, section: 11-wallets-tokens}
+  - {id: craft, label: A ship or an aircraft, short: Ship / aircraft, section: 12-tracking}
+  - {id: location, label: A place, short: Place, section: 12-tracking}
+
+edges:
+  # --- username ---
+  - from: username
+    to: account
+    via: [maigret, sherlock, blackbird]
+    label: "Find every site where the handle exists."
+    note: "A hit is a lead, not an identity. Many people share a handle."
+  - from: username
+    to: account
+    via: [platform-search, fediverse-bluesky]
+    label: "Search the handle on each platform itself, including Mastodon and Bluesky."
+  - from: username
+    to: account
+    via: [social-archives]
+    label: "Check the archives for posts the account later deleted."
+  - from: username
+    to: name
+    via: [handle-pivot]
+    label: "Vary the handle by hand and search it as a quoted string; forum posts and pasted profiles may name the person."
+  - from: username
+    to: image
+    via: [reverse-image]
+    label: "Reverse-search the profile photo, cropped to the face or logo."
+  - from: username
+    to: repo
+    via: [github-dorking, code-search-engines]
+    label: "Search public code for the handle as an owner or author."
+
+  # --- email ---
+  - from: email
+    to: account
+    via: [holehe, epieos]
+    label: "See which services have an account registered to the address."
+    note: "Holehe is stale; trust its hits, not its misses."
+  - from: email
+    to: account
+    via: [ghunt]
+    label: "If it is a Google account, read the name, photo, Maps reviews and YouTube channel."
+  - from: email
+    to: username
+    via: [blackbird]
+    label: "Search the address as well as the handle; Blackbird takes both."
+  - from: email
+    to: exposure
+    via: [hibp]
+    label: "Check which breaches include the address. It never shows passwords."
+  - from: email
+    to: domain
+    via: [whois-rdap]
+    label: "Look up the registration of the part after the @."
+  - from: email
+    to: ip
+    via: [email-headers]
+    label: "Read the full headers for the sending servers and whether SPF, DKIM and DMARC passed."
+  - from: email
+    to: name
+    via: [search-operators]
+    label: "Search the address as a quoted string; pages that list it may attach a name."
+
+  # --- phone ---
+  - from: phone
+    to: account
+    via: [epieos, messaging-presence]
+    label: "See registered services, then which messaging apps show a profile for the number."
+  - from: phone
+    to: org
+    via: [phoneinfoga]
+    label: "Get the country, carrier and line type, then sweep public sources."
+  - from: phone
+    to: name
+    via: [search-operators]
+    label: "Search the number in each written format, quoted."
+
+  # --- name ---
+  - from: name
+    to: account
+    via: [platform-search, search-operators]
+    label: "Use each platform's own search, then quoted-name queries with site: operators."
+  - from: name
+    to: org
+    via: [opencorporates, edgar-aleph]
+    label: "Find companies where the person is an officer or director, and any public filings."
+  - from: name
+    to: org
+    via: [sanctions-ownership]
+    label: "Check ownership, sanctions and offshore-leak databases for the name."
+  - from: name
+    to: location
+    via: [public-records]
+    label: "Court, property and voter records are the primary sources the aggregators scrape."
+  - from: name
+    to: name
+    via: [genealogy]
+    label: "Obituaries and genealogy sites can name a whole family in one document."
+
+  # --- domain ---
+  - from: domain
+    to: domain
+    via: [crtsh]
+    label: "List every subdomain the domain has ever certified."
+  - from: domain
+    to: domain
+    via: [projectdiscovery, amass, dns-browser]
+    label: "Enumerate subdomains from more sources, then see which ones answer."
+  - from: domain
+    to: domain
+    via: [tracker-ids]
+    label: "Shared analytics and ad IDs can link several sites to one operator."
+  - from: domain
+    to: domain
+    via: [wayback]
+    label: "Read what the site used to say, and preserve what it says now."
+  - from: domain
+    to: ip
+    via: [dns-browser, urlscan-osint]
+    label: "Map hosts to addresses, then see what a scan of the page requested."
+  - from: domain
+    to: org
+    via: [whois-rdap]
+    label: "Registrar, nameservers and DNS history from before privacy was switched on."
+  - from: domain
+    to: org
+    via: [tech-stack]
+    label: "Fingerprint the stack and read the job postings that list the rest."
+  - from: domain
+    to: email
+    via: [hunterio, theharvester]
+    label: "Get the organization's address pattern and the addresses already known."
+  - from: domain
+    to: name
+    via: [theharvester]
+    label: "Collect employee names for the domain from search engines and logs."
+  - from: domain
+    to: exposure
+    via: [leakix, bucket-search]
+    label: "Look for open databases, Git directories and publicly readable storage buckets."
+
+  # --- ip ---
+  - from: ip
+    to: org
+    via: [asn-bgp]
+    label: "Map the address to its network block and the autonomous system that runs it."
+  - from: ip
+    to: domain
+    via: [dns-browser, urlscan-osint]
+    label: "Use reverse nameserver and IP pivots, and search past scans for the address."
+  - from: ip
+    to: exposure
+    via: [leakix]
+    label: "See whether the address is serving anything it should not."
+  - from: ip
+    to: ip
+    via: [enrichment]
+    label: "Check whether the indicator is already known bad before investigating from scratch."
+
+  # --- organization ---
+  - from: org
+    to: name
+    via: [opencorporates, edgar-aleph]
+    label: "Read officers, incorporation dates and filings for the people behind it."
+  - from: org
+    to: org
+    via: [sanctions-ownership]
+    label: "Follow ownership chains and check sanctions and offshore-leak records."
+  - from: org
+    to: exposure
+    via: [leakix, bucket-search]
+    label: "Search exposed-service and open-bucket indexes by the organization's name, domain or network range."
+
+  # --- photo / video ---
+  - from: image
+    to: location
+    via: [exif-osint]
+    label: "Read the embedded metadata first: GPS, timestamps, camera serial numbers."
+  - from: image
+    to: location
+    via: [geolocation, change-detection]
+    label: "Place and date the scene from terrain, signage and shadows, then compare imagery."
+  - from: image
+    to: account
+    via: [reverse-image]
+    label: "Find other copies and the accounts that posted them. Each engine finds different things."
+  - from: image
+    to: image
+    via: [c2pa, image-forensics, two-indicators]
+    label: "Check provenance and signs of manipulation. Call it fake or real only on two indicators."
+    note: "A missing Content Credentials manifest means unknown, not clean."
+  - from: image
+    to: image
+    via: [invid]
+    label: "For video, extract keyframes and reverse-search them."
+
+  # --- social account or post ---
+  - from: account
+    to: username
+    via: [handle-pivot]
+    label: "Take the handle and vary it by hand to find the same person elsewhere."
+  - from: account
+    to: image
+    via: [reverse-image]
+    label: "Reverse-search the profile photo and any original images."
+  - from: account
+    to: account
+    via: [social-archives]
+    label: "Recover deleted posts from archives and caches."
+  - from: account
+    to: account
+    via: [telegram-discord]
+    label: "Read channels and servers where related activity lives, without joining in."
+  - from: account
+    to: account
+    via: [bot-detection]
+    label: "Check it is a real account by observable behaviour before building on it."
+
+  # --- code ---
+  - from: repo
+    to: exposure
+    via: [secret-scanners, github-dorking]
+    label: "Scan the full history for committed credentials and test whether they still work."
+  - from: repo
+    to: repo
+    via: [code-search-engines]
+    label: "Reach code that GitHub search does not index."
+
+  # --- wallet ---
+  - from: wallet
+    to: wallet
+    via: [block-explorers, chain-tracing]
+    label: "Read counterparties and the first funding source, then cluster addresses into entities."
+  - from: wallet
+    to: wallet
+    via: [rugpull-checks]
+    label: "For a token, check the contract and liquidity before trusting it."
+
+  # --- ship or aircraft ---
+  - from: craft
+    to: location
+    via: [air-tracking, ship-tracking]
+    label: "Pull live and historical positions from transponder and AIS broadcasts."
+  - from: craft
+    to: org
+    via: [ship-tracking]
+    label: "Follow the registry layer behind a vessel to its owner and operator."
+
+  # --- place ---
+  - from: location
+    to: location
+    via: [sat-free, change-detection]
+    label: "Look at free satellite imagery, and ask date, resolution, shadows and what changed."

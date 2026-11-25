@@ -209,6 +209,10 @@ def render_readme(sections, tools, skips):
     out.append(
         "**Method and ethics.** How the guide's loop lines up with the Berkeley Protocol, where it is thin, and what is "
         "gated and why: [docs/METHODOLOGY.md](docs/METHODOLOGY.md).\n")
+    out.append(
+        "**Pivot map.** Pick what you already hold (a username, an email, a photo) and see what you can reach next and which "
+        "tools get you there. It is one self-contained file: download [docs/pivot-map.html](docs/pivot-map.html) and open it in a "
+        "browser. The same graph as data is in [docs/pivot-map.json](docs/pivot-map.json).\n")
     out.append("## Read it from the terminal\n")
     out.append(
         "The same data is available offline as a small command-line reader. It prints entries, cautions and the install lines for "

@@ -35,6 +35,68 @@ def load_ignore():
         return []
 
 
+def load_pivots():
+    """Pivot map data: {nodes: [...], edges: [...]}."""
+    return _read("pivots.yml")
+
+
+def validate_pivots(pivots, sections, tools):
+    """Every edge must connect real nodes through real, non-gated tools."""
+    errs = []
+    nodes = pivots.get("nodes") or []
+    edges = pivots.get("edges") or []
+    sec_ids = {s["id"] for s in sections}
+    by_id = {t["id"]: t for t in tools}
+    node_ids = [n.get("id") for n in nodes]
+    if len(node_ids) != len(set(node_ids)):
+        errs.append("pivots: duplicate node ids")
+    for n in nodes:
+        nid = n.get("id", "<no id>")
+        if not isinstance(nid, str) or not SLUG_RE.match(nid):
+            errs.append("pivots node %s: id must be a lowercase slug" % nid)
+        for k in ("label", "short", "section"):
+            if not n.get(k):
+                errs.append("pivots node %s: missing %s" % (nid, k))
+        if n.get("section") and n["section"] not in sec_ids:
+            errs.append("pivots node %s: unknown section %r" % (nid, n["section"]))
+    ids = set(node_ids)
+    touched = set()
+    seen = set()
+    for i, e in enumerate(edges):
+        where = "pivots edge %d (%s -> %s)" % (i, e.get("from"), e.get("to"))
+        for k in ("from", "to"):
+            if e.get(k) not in ids:
+                errs.append("%s: unknown node %r in %s" % (where, e.get(k), k))
+            else:
+                touched.add(e[k])
+        via = e.get("via")
+        if not via or not isinstance(via, list):
+            errs.append("%s: via must be a non-empty list of tool ids" % where)
+            via = []
+        for tid in via:
+            t = by_id.get(tid)
+            if t is None:
+                errs.append("%s: unknown tool %r" % (where, tid))
+            elif t.get("step"):
+                errs.append("%s: %r is a workflow step, not a tool" % (where, tid))
+            elif t.get("tier") == "gated":
+                errs.append("%s: %r is gated; the map must not name gated tools" % (where, tid))
+        if len(via) != len(set(via)):
+            errs.append("%s: repeated tool in via" % where)
+        label = e.get("label") or ""
+        if not label:
+            errs.append("%s: missing label" % where)
+        elif len(label) > 140:
+            errs.append("%s: label is longer than 140 characters" % where)
+        key = (e.get("from"), e.get("to"), tuple(sorted(via)))
+        if key in seen:
+            errs.append("%s: duplicate edge" % where)
+        seen.add(key)
+    for nid in ids - touched:
+        errs.append("pivots node %s: has no edges" % nid)
+    return errs
+
+
 def validate_ignore(rows, today=None):
     """Each exception needs a url, a reason and an expiry date, so nothing is ignored forever."""
     today = today or datetime.date.today()

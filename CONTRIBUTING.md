@@ -44,6 +44,7 @@ python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\a
 pip install -r requirements-dev.txt
 # edit data/tools.yml (or sections.yml, skip.yml)
 python scripts/build_readme.py                        # regenerate README.md and docs/
+python scripts/build_pivot_map.py                     # regenerate docs/pivot-map.html and .json
 python scripts/validate.py                            # schema and rule checks
 python -m pytest -q                                   # data, build, health-check and command-line tests
 python -m pytest -q                                   # includes "generated files are current"
