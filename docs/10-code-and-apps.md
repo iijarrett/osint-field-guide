@@ -65,7 +65,7 @@ trufflehog git file://. --only-verified
 
 Upstream's README also shows a curl-to-shell installer; this guide prefers brew, Docker or the release binary so you can inspect what you run.
 
-**Links:** [github.com/<org](https://github.com/<org) · [github.com/trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)
+**Links:** [github.com/trufflesecurity/trufflehog](https://github.com/trufflesecurity/trufflehog)
 
 <sub>Last reviewed 2026-11-23 · install lines partly checked (see section 00)</sub>
 

@@ -57,3 +57,19 @@ def test_validator_catches_problems(data, mutate, fragment):
     mutate(tools)
     errs = validate(sections, tools, skips)
     assert any(fragment in e for e in errs), errs
+
+
+def test_placeholder_links_are_rejected(data):
+    sections, tools, skips = copy.deepcopy(data)
+    tools[0]["links"] = [{"label": "x", "url": "https://github.com/<org"}]
+    assert any("placeholder" in e for e in validate(sections, tools, skips))
+
+
+def test_health_ignore_file_is_valid_and_expires():
+    import datetime
+    from osintlib import load_ignore, validate_ignore
+    today = datetime.date(2026, 11, 25)
+    assert validate_ignore(load_ignore(), today) == []
+    far = [{"url": "https://a.com/", "reason": "x", "until": "2030-01-01"}]
+    assert any("180 days" in e for e in validate_ignore(far, today))
+    assert any("missing reason" in e for e in validate_ignore([{"url": "https://a.com/", "until": "2026-12-01"}], today))

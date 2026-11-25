@@ -296,18 +296,21 @@
   section: 01-username
   kind: free · local tool · Python
   tier: start
-  summary: Username and email search over the WhatsMyName dataset, with PDF and CSV export.
+  summary: Username and email search with PDF and CSV export, built on the WhatsMyName dataset, which is now frozen.
   what: >-
     A username and email search tool in the same family as Maigret and Sherlock. It checks a handle against
     600-plus sites using the WhatsMyName dataset, can export results to PDF and CSV, and has an optional
-    AI-profiling feature that summarizes what it found.
+    AI-profiling feature that summarizes what it found. That dataset stopped being maintained on 9 November
+    2026 (see the skip list).
   why: >-
     *Why a second pick:* a different front end over the community dataset, and actively developed — its
     repository shows hundreds of commits and many stars. The AI summary sends your findings to a third-party
-    service; leave it off for anything sensitive. Treat every hit as a lead, as with the other two.
+    service; leave it off for anything sensitive. Treat every hit as a lead, as with the other two. The
+    site rules it reads were frozen when WhatsMyName closed, so they will drift out of date; trust misses
+    less than hits unless the project ships its own rule updates.
   install:
   - os: All OS
-    cmd: git clone https://github.com/p1ngul1n0/blackbird ; cd blackbird
+    cmd: git clone https://github.com/antoniaci/blackbird ; cd blackbird
   - os: Windows
     cmd: python -m venv .venv ; .venv\Scripts\activate ; pip install -r requirements.txt
   - os: macOS/Linux
@@ -319,37 +322,16 @@
     Install steps follow the project's README layout; read `requirements.txt` before installing and keep
     it in the research VM. There is a PyPI package named `blackbird`, but it was not confirmed to be this
     project, so this guide doesn't use it.
-  links:
-  - label: github.com/p1ngul1n0/blackbird
-    url: https://github.com/p1ngul1n0/blackbird
-  github: p1ngul1n0/blackbird
-  verified:
-    date: '2026-11-23'
-    install_checked: partial
-- id: whatsmyname
-  name: WhatsMyName
-  section: 01-username
-  kind: free · site + dataset
-  tier: start
-  summary: Community-maintained dataset of 700+ account-detection rules, with a web front end.
-  what: >-
-    A community-maintained JSON dataset of 700+ sites and their account-detection rules, plus a web front
-    end you can just type into. No install needed for the basic use.
-  why: >-
-    *Why it matters:* it's the **data layer half the other tools are built on**, and it's curated harder
-    than any single scanner's built-in list — detection rules get fixed when a site changes. Use the web
-    version for a quick check; pull the JSON when you're building something.
-  notes:
   - >-
-    [whatsmyname.app](https://whatsmyname.app/) · dataset at [github.com/WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName)
+    The repository moved on GitHub from `p1ngul1n0/blackbird` to `antoniaci/blackbird` (same project, same
+    history; the old address redirects). Use the new one.
   links:
-  - label: whatsmyname.app
-    url: https://whatsmyname.app/
-  - label: github.com/WebBreacher/WhatsMyName
-    url: https://github.com/WebBreacher/WhatsMyName
-  github: WebBreacher/WhatsMyName
+  - label: github.com/antoniaci/blackbird
+    url: https://github.com/antoniaci/blackbird
+  github: antoniaci/blackbird
   verified:
-    date: '2026-11-23'
+    date: '2026-11-25'
+    install_checked: partial
 - id: handle-pivot
   name: Manual handle pivoting
   section: 01-username
@@ -1167,13 +1149,12 @@
     Also pivot on **favicon hashes** and unique script paths via urlscan's search.
   notes:
   - >-
-    Read the page source, or use [analyzeid.com](https://analyzeid.com/) / [spyonweb.com](https://spyonweb.com/)
-    · then confirm the set with a urlscan.io search on the same ID
+    Read the page source, or use [analyzeid.com](https://analyzeid.com/) · spyonweb.com did not answer on
+    25 November 2026, so check it before relying on it · then confirm the set with a urlscan.io search on
+    the same ID
   links:
   - label: analyzeid.com
     url: https://analyzeid.com/
-  - label: spyonweb.com
-    url: https://spyonweb.com/
   verified:
     date: '2026-11-23'
 - id: exif-osint
@@ -1615,8 +1596,6 @@
     Upstream's README also shows a curl-to-shell installer; this guide prefers brew, Docker or the release
     binary so you can inspect what you run.
   links:
-  - label: github.com/<org
-    url: https://github.com/<org
   - label: github.com/trufflesecurity/trufflehog
     url: https://github.com/trufflesecurity/trufflehog
   github: trufflesecurity/trufflehog

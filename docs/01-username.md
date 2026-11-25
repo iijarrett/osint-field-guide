@@ -11,7 +11,6 @@ The single most productive starting selector there is. People reuse handles acro
 | [Maigret](#maigret) | `START` | free · local tool · Python |
 | [Sherlock](#sherlock) | `START` | free · local tool · Python |
 | [Blackbird](#blackbird) | `START` | free · local tool · Python |
-| [WhatsMyName](#whatsmyname) | `START` | free · site + dataset |
 | [Manual handle pivoting](#handle-pivot) | `DEEPER` | free · practice |
 
 <a id="maigret"></a>
@@ -61,15 +60,15 @@ sherlock <username>
 ### Blackbird
 `START` · free · local tool · Python
 
-A username and email search tool in the same family as Maigret and Sherlock. It checks a handle against 600-plus sites using the WhatsMyName dataset, can export results to PDF and CSV, and has an optional AI-profiling feature that summarizes what it found.
+A username and email search tool in the same family as Maigret and Sherlock. It checks a handle against 600-plus sites using the WhatsMyName dataset, can export results to PDF and CSV, and has an optional AI-profiling feature that summarizes what it found. That dataset stopped being maintained on 9 November 2026 (see the skip list).
 
-*Why a second pick:* a different front end over the community dataset, and actively developed — its repository shows hundreds of commits and many stars. The AI summary sends your findings to a third-party service; leave it off for anything sensitive. Treat every hit as a lead, as with the other two.
+*Why a second pick:* a different front end over the community dataset, and actively developed — its repository shows hundreds of commits and many stars. The AI summary sends your findings to a third-party service; leave it off for anything sensitive. Treat every hit as a lead, as with the other two. The site rules it reads were frozen when WhatsMyName closed, so they will drift out of date; trust misses less than hits unless the project ships its own rule updates.
 
 **Install and run**
 
 ```sh
 # All OS
-git clone https://github.com/p1ngul1n0/blackbird ; cd blackbird
+git clone https://github.com/antoniaci/blackbird ; cd blackbird
 # Windows
 python -m venv .venv ; .venv\Scripts\activate ; pip install -r requirements.txt
 # macOS/Linux
@@ -80,23 +79,11 @@ python blackbird.py --username <handle>
 
 Install steps follow the project's README layout; read `requirements.txt` before installing and keep it in the research VM. There is a PyPI package named `blackbird`, but it was not confirmed to be this project, so this guide doesn't use it.
 
-**Links:** [github.com/p1ngul1n0/blackbird](https://github.com/p1ngul1n0/blackbird)
+The repository moved on GitHub from `p1ngul1n0/blackbird` to `antoniaci/blackbird` (same project, same history; the old address redirects). Use the new one.
 
-<sub>Last reviewed 2026-11-23 · install lines partly checked (see section 00)</sub>
+**Links:** [github.com/antoniaci/blackbird](https://github.com/antoniaci/blackbird)
 
----
-
-<a id="whatsmyname"></a>
-### WhatsMyName
-`START` · free · site + dataset
-
-A community-maintained JSON dataset of 700+ sites and their account-detection rules, plus a web front end you can just type into. No install needed for the basic use.
-
-*Why it matters:* it's the **data layer half the other tools are built on**, and it's curated harder than any single scanner's built-in list — detection rules get fixed when a site changes. Use the web version for a quick check; pull the JSON when you're building something.
-
-[whatsmyname.app](https://whatsmyname.app/) · dataset at [github.com/WebBreacher/WhatsMyName](https://github.com/WebBreacher/WhatsMyName)
-
-<sub>Last reviewed 2026-11-23</sub>
+<sub>Last reviewed 2026-11-25 · install lines partly checked (see section 00)</sub>
 
 ---
 

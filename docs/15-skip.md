@@ -62,6 +62,10 @@ Repositories that bundle dozens of tools behind one installer — often run as r
 
 Bellingcat's own toolkit lists Telepathy as unmaintained, and Telegram's client interfaces change often enough that an abandoned scraper fails silently or half-works. Use the search engines and trackers in [§08](08-social.md), and screenshot what you read.
 
+**WhatsMyName (the dataset and whatsmyname.app)**
+
+Its author archived the project on 9 November 2026 and stopped maintaining it. The final dataset of 691 sites stays online at the same address, but nobody is fixing detection rules any more, so it will get less accurate every month, and tools built on it inherit that. Use Maigret (section 01), which keeps its own site list and is still being updated.
+
 **Running any of this against a target you're not authorized to investigate**
 
 Not a tool, but it belongs on this list. Active recon without authorization is potentially unauthorized access; investigating a private individual without a lawful basis is potentially harassment or a data-protection breach. "It's public information" is not a legal defense for what you do next with it.

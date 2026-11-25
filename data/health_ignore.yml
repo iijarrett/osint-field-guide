@@ -1,0 +1,11 @@
+# Accepted health-check exceptions. A finding listed here is moved to the "Accepted exceptions" part of the
+# report until the date in `until`, then it is reported again. `until` may be at most 180 days away.
+- url: https://crt.sh/
+  reason: Did not answer from GitHub's servers (HTTP 502) or from a home connection on 25 November 2026. Recheck by hand.
+  until: '2027-02-23'
+- url: https://archive.today/
+  reason: No response from GitHub's servers or from a home connection on 25 November 2026, though the name resolves. Recheck by hand.
+  until: '2027-02-23'
+- url: https://lens.google.com/
+  reason: Redirects within Google to search.google but still opens; the entry links the address people actually use.
+  until: '2027-02-23'

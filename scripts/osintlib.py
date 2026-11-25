@@ -27,6 +27,33 @@ def load():
     return _read("sections.yml"), _read("tools.yml"), _read("skip.yml")
 
 
+def load_ignore():
+    """Accepted health-check exceptions: [{url, reason, until}]. Missing file means none."""
+    try:
+        return _read("health_ignore.yml") or []
+    except FileNotFoundError:
+        return []
+
+
+def validate_ignore(rows, today=None):
+    """Each exception needs a url, a reason and an expiry date, so nothing is ignored forever."""
+    today = today or datetime.date.today()
+    errs = []
+    for i, r in enumerate(rows):
+        label = r.get("url") or "row %d" % i
+        if not str(r.get("url", "")).startswith("https://"):
+            errs.append("health_ignore %s: url must be https" % label)
+        if not r.get("reason"):
+            errs.append("health_ignore %s: missing reason" % label)
+        try:
+            until = datetime.date.fromisoformat(str(r.get("until")))
+            if (until - today).days > 180:
+                errs.append("health_ignore %s: until is more than 180 days away; accepted exceptions must be re-reviewed" % label)
+        except ValueError:
+            errs.append("health_ignore %s: until must be YYYY-MM-DD" % label)
+    return errs
+
+
 def real_tools(tools):
     """Entries that are tools, not workflow steps."""
     return [t for t in tools if not t.get("step")]
@@ -69,6 +96,8 @@ def validate(sections, tools, skips):
             u = l.get("url", "")
             if not u.startswith("https://"):
                 errs.append("%s: link must be https: %r" % (tid, u))
+            if "<" in u or ">" in u or " " in u:
+                errs.append("%s: link looks like a placeholder or contains a space: %r" % (tid, u))
             if not l.get("label"):
                 errs.append("%s: link missing label" % tid)
         gh = t.get("github")

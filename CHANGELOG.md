@@ -3,6 +3,18 @@
 Notable changes to the guide. Newest first. Tool-level changes (a tool added, dropped or re-rated) are recorded here;
 routine review-date updates are not.
 
+## 0.2.2, 2026-11-25
+
+- WhatsMyName moved to the skip list: its author archived it on 9 November 2026. Blackbird's entry now says the
+  dataset it reads is frozen.
+- Blackbird's repository moved on GitHub from `p1ngul1n0` to `antoniaci`; links and clone line updated.
+- Fixed a placeholder link in the secret-scanners entry. The validator now rejects links containing `<`, `>` or a
+  space.
+- Removed the SpyOnWeb link (unreachable on 25 November 2026) from the tracker-IDs entry.
+- Health check: retries on HTTP 502 and 504; an optional `data/health_ignore.yml` lists accepted exceptions that
+  expire after at most 180 days and appear in the report; repositories whose entry already says stale, dormant or
+  slowing are no longer flagged as quiet.
+
 ## 0.2.1, 2026-11-25
 
 - Added `docs/METHODOLOGY.md`: how the guide's loop maps to the Berkeley Protocol's investigative cycle, a

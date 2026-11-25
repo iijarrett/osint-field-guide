@@ -107,7 +107,7 @@ The highest-yield infrastructure pivot on this guide. A site's page source carri
 
 *Why it beats WHOIS now:* registration privacy hides the owner, but analytics IDs are pasted into the page by hand and almost nobody thinks to vary them. This is the single technique that most reliably links a network of scam sites, a shell-company web presence, or a disinformation cluster to one operator. Also pivot on **favicon hashes** and unique script paths via urlscan's search.
 
-Read the page source, or use [analyzeid.com](https://analyzeid.com/) / [spyonweb.com](https://spyonweb.com/) · then confirm the set with a urlscan.io search on the same ID
+Read the page source, or use [analyzeid.com](https://analyzeid.com/) · spyonweb.com did not answer on 25 November 2026, so check it before relying on it · then confirm the set with a urlscan.io search on the same ID
 
 <sub>Last reviewed 2026-11-23</sub>
 

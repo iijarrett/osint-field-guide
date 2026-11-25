@@ -4,7 +4,7 @@
 
 [![Validate](https://github.com/iijarrett/osint-field-guide/actions/workflows/validate.yml/badge.svg)](https://github.com/iijarrett/osint-field-guide/actions/workflows/validate.yml) [![Tool health](https://github.com/iijarrett/osint-field-guide/actions/workflows/health.yml/badge.svg)](https://github.com/iijarrett/osint-field-guide/actions/workflows/health.yml) [![Code: MIT](https://img.shields.io/badge/code-MIT-blue)](LICENSE) [![Content: CC BY 4.0](https://img.shields.io/badge/content-CC%20BY%204.0-lightgrey)](LICENSE-CONTENT.md)
 
-**A short list of the best open-source-intelligence tools, organized by what you have in your hand: a username, an email, a photo, a domain, a wallet.** 88 entries, with install lines for Windows, macOS and Linux wherever there is something to install, plain notes on each tool's limits, and a weekly health check that flags dead links and abandoned projects.
+**A short list of the best open-source-intelligence tools, organized by what you have in your hand: a username, an email, a photo, a domain, a wallet.** 87 entries, with install lines for Windows, macOS and Linux wherever there is something to install, plain notes on each tool's limits, and a weekly health check that flags dead links and abandoned projects.
 
 ## Why this one is different
 
@@ -18,7 +18,7 @@
 
 | You have | Go to | Tools |
 |---|---|---|
-| You have a username | [Section 01](docs/01-username.md) | 5 |
+| You have a username | [Section 01](docs/01-username.md) | 4 |
 | You have an email address | [Section 02](docs/02-email.md) | 5 |
 | You have a phone number | [Section 03](docs/03-phone.md) | 2 |
 | You have a real name | [Section 04](docs/04-real-name.md) | 4 |
@@ -39,7 +39,7 @@
 
 | Tag | Meaning |
 |---|---|
-| `START` | Free, fast, no setup worth mentioning. The first thing to reach for in that section (42 tools). |
+| `START` | Free, fast, no setup worth mentioning. The first thing to reach for in that section (41 tools). |
 | `DEEPER` | More setup: an install, API keys, a free account or patience. Where the real results usually are. |
 | `GATED` | Costs money, needs a business email, or carries real ethical or legal weight (8 tools). Know it exists; think before you reach. |
 
@@ -79,8 +79,7 @@ Add `--json` to any command to pipe the result into your own tools.
 |---|---|---|
 | [Maigret](docs/01-username.md#maigret) | `START` | Username search across thousands of sites that also parses each hit into a profile dossier. |
 | [Sherlock](docs/01-username.md#sherlock) | `START` | The original username hunter: one handle across 400+ networks, fast and simple. |
-| [Blackbird](docs/01-username.md#blackbird) | `START` | Username and email search over the WhatsMyName dataset, with PDF and CSV export. |
-| [WhatsMyName](docs/01-username.md#whatsmyname) | `START` | Community-maintained dataset of 700+ account-detection rules, with a web front end. |
+| [Blackbird](docs/01-username.md#blackbird) | `START` | Username and email search with PDF and CSV export, built on the WhatsMyName dataset, which is now frozen. |
 | [Manual handle pivoting](docs/01-username.md#handle-pivot) | `DEEPER` | Vary the handle by hand (jsmith, j_smith, jsmith88) and search it as a quoted string. |
 
 ### 02. [You have an email address](docs/02-email.md)
@@ -228,7 +227,7 @@ Add `--json` to any command to pipe the result into your own tools.
 
 ### 15. [Skip — and why](docs/15-skip.md)
 
-15 tools and habits that keep getting recommended and shouldn't be. Each has the reason.
+16 tools and habits that keep getting recommended and shouldn't be. Each has the reason.
 
 ## Ground rules
 

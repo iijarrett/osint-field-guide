@@ -28,6 +28,12 @@ An entry earns its place if it passes all of these.
    test will not be accepted.
 6. **No affiliate links, sponsored placement or tracking links.**
 
+## Handling a tool-health report
+
+The weekly health issue lists what needs a person. For each finding, check it by hand, then either fix the data
+(move a renamed repository, update a changed link, move a dead tool to `data/skip.yml`) or, if the finding is a
+false alarm you have confirmed, add the URL to `data/health_ignore.yml` with a reason and an expiry date.
+
 ## How to edit the data
 
 The README and every numbered page under `docs/` are generated. Do not edit them by hand.

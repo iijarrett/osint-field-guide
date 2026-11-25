@@ -12,7 +12,8 @@ Findings (these need a human):
     archived    GitHub repository is archived
     missing     GitHub repository returns 404
     renamed     GitHub repository was renamed or transferred
-    quiet       GitHub repository has had no push for more than a year
+    quiet       GitHub repository has had no push for more than a year (skipped when the entry's kind
+                says stale, dormant or slowing: it already says so)
     reverify    the entry's review date is older than the limit
 
 Not findings: sites that answer 401/403/429 to automated requests are reported as "unknown"
@@ -25,6 +26,7 @@ import concurrent.futures
 import datetime
 import json
 import os
+import re
 import socket
 import ssl
 import sys
@@ -33,10 +35,12 @@ import urllib.error
 import urllib.request
 from urllib.parse import urlparse
 
-from osintlib import load, real_tools
+from osintlib import load, load_ignore, real_tools
 
 UA = "Mozilla/5.0 (compatible; osint-field-guide-health/1.0; +https://github.com/iijarrett/osint-field-guide)"
 BOT_BLOCKED = {401, 403, 405, 406, 429, 451, 503, 999}
+TRANSIENT = {0, 502, 504}
+STALE_WORDS = re.compile(r"stale|dormant|slowing")
 QUIET_DAYS = 365
 REVERIFY_DAYS = 180
 
@@ -69,7 +73,7 @@ def check_url(url, fetcher=fetch, retries=2, sleep=time.sleep):
     status, final = 0, None
     for attempt in range(retries + 1):
         status, final = fetcher(url, "GET")
-        if status == 0 and attempt < retries:
+        if status in TRANSIENT and attempt < retries:
             sleep(1.5 * (attempt + 1))
             continue
         break
@@ -138,7 +142,19 @@ def review_age(tool, today=None):
     return (today - d).days
 
 
-def run(tools, url_checker=check_url, repo_checker=check_repo, today=None, workers=8):
+def accepted_reason(url, ignore, today):
+    """Reason text if this URL is an accepted exception that has not expired, else None."""
+    for row in ignore or []:
+        if row.get("url") == url:
+            try:
+                if datetime.date.fromisoformat(str(row.get("until"))) >= today:
+                    return "%s (accepted until %s)" % (row.get("reason", ""), row["until"])
+            except ValueError:
+                return None
+    return None
+
+
+def run(tools, url_checker=check_url, repo_checker=check_repo, today=None, workers=8, ignore=None):
     """Check every tool. Returns a list of per-tool results."""
     today = today or datetime.date.today()
     urls = sorted({l["url"] for t in tools for l in t.get("links", []) or []})
@@ -148,23 +164,29 @@ def run(tools, url_checker=check_url, repo_checker=check_repo, today=None, worke
         repo_res = dict(zip(repos, ex.map(repo_checker, repos)))
     results = []
     for t in tools:
-        findings, unknown = [], []
+        findings, unknown, accepted = [], [], []
         for l in t.get("links", []) or []:
             r = url_res[l["url"]]
             if r["state"] in ("dead", "moved"):
-                findings.append((r["state"], l["url"], r["why"]))
+                reason = accepted_reason(l["url"], ignore, today)
+                if reason:
+                    accepted.append((l["url"], "%s; %s" % (r["why"], reason)))
+                else:
+                    findings.append((r["state"], l["url"], r["why"]))
             elif r["state"] == "unknown":
                 unknown.append((l["url"], r["why"]))
         if t.get("github"):
             r = repo_res[t["github"]]
-            if r["state"] in ("missing", "archived", "renamed", "quiet"):
+            if r["state"] == "quiet" and STALE_WORDS.search(t.get("kind", "")):
+                pass  # the entry already says plainly that the project is stale or dormant
+            elif r["state"] in ("missing", "archived", "renamed", "quiet"):
                 findings.append((r["state"], "github.com/" + t["github"], r["why"]))
             elif r["state"] == "unknown":
                 unknown.append(("github.com/" + t["github"], r["why"]))
         age = review_age(t, today)
         if age is not None and age > REVERIFY_DAYS and not t.get("step"):
             findings.append(("reverify", t["id"], "last reviewed %d days ago" % age))
-        results.append({"id": t["id"], "name": t["name"], "findings": findings, "unknown": unknown})
+        results.append({"id": t["id"], "name": t["name"], "findings": findings, "unknown": unknown, "accepted": accepted})
     return results
 
 
@@ -189,6 +211,12 @@ def render(results, today=None):
             for target, why in r["unknown"]:
                 out.append("- `%s`: %s (%s)" % (r["id"], target, why))
         out += ["", "</details>", ""]
+    acc = [(r["id"], u, why) for r in results for u, why in r.get("accepted", [])]
+    if acc:
+        out += ["<details><summary>Accepted exceptions (%d)</summary>" % len(acc), ""]
+        for tid, u, why in acc:
+            out.append("- `%s`: %s (%s)" % (tid, u, why))
+        out += ["", "</details>", ""]
     out.append("Findings need a human: confirm the change, then update `data/tools.yml` and the entry's review date.")
     return "\n".join(out) + "\n"
 
@@ -210,7 +238,8 @@ def main(argv=None):
         want = set(args.only.split(","))
         tools = [t for t in tools if t["id"] in want]
     token = os.environ.get("GITHUB_TOKEN")
-    results = run(tools, repo_checker=lambda r: check_repo(r, getter=lambda p: github_get(p, token)), workers=args.workers)
+    results = run(tools, repo_checker=lambda r: check_repo(r, getter=lambda p: github_get(p, token)),
+                  workers=args.workers, ignore=load_ignore())
     text = render(results)
     print(text)
     if args.report:

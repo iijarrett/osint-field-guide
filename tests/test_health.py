@@ -81,3 +81,44 @@ def test_run_and_render():
     text = h.render(results, today=TODAY)
     assert "3 tools checked, 2 with findings (3 in total)" in text
     assert h.count_findings(results) == 3
+
+
+def test_retry_on_bad_gateway_recovers():
+    calls = {"n": 0}
+
+    def flaky(url, method="GET"):
+        calls["n"] += 1
+        return (502, url) if calls["n"] == 1 else (200, url)
+
+    r = h.check_url("https://a.com/", fetcher=flaky, retries=2, sleep=lambda s: None)
+    assert r["state"] == "ok" and calls["n"] == 2
+
+
+def tool(tid, url, kind="free · site"):
+    return {"id": tid, "name": tid, "kind": kind, "links": [{"label": "x", "url": url}], "verified": {"date": "2026-11-23"}}
+
+
+def dead(url):
+    return {"url": url, "state": "dead", "status": 0, "final": None, "why": "no response"}
+
+
+def test_accepted_exception_moves_finding_out_of_the_count():
+    ignore = [{"url": "https://a.com/", "reason": "down for everyone", "until": "2027-01-01"}]
+    res = h.run([tool("a", "https://a.com/")], url_checker=dead, today=TODAY, ignore=ignore)
+    assert h.count_findings(res) == 0
+    assert "down for everyone" in h.render(res, today=TODAY)
+
+
+def test_expired_exception_is_reported_again():
+    ignore = [{"url": "https://a.com/", "reason": "x", "until": "2026-11-01"}]
+    res = h.run([tool("a", "https://a.com/")], url_checker=dead, today=TODAY, ignore=ignore)
+    assert h.count_findings(res) == 1
+
+
+def test_quiet_repo_is_skipped_when_the_entry_says_stale():
+    quiet = lambda repo: {"repo": repo, "state": "quiet", "why": "no push"}
+    stale = dict(tool("s", "https://a.com/", kind="free · local tool · stale"), github="o/r")
+    live = dict(tool("l", "https://a.com/", kind="free · local tool"), github="o/r")
+    ok = lambda url: {"url": url, "state": "ok", "status": 200, "final": url, "why": ""}
+    res = h.run([stale, live], url_checker=ok, repo_checker=quiet, today=TODAY)
+    assert [len(r["findings"]) for r in res] == [0, 1]

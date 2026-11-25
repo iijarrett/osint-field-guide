@@ -2,12 +2,12 @@
 """Check data/*.yml against the rules in osintlib.validate. Exit 1 on any error."""
 import sys
 
-from osintlib import load, real_tools, validate
+from osintlib import load, load_ignore, real_tools, validate, validate_ignore
 
 
 def main():
     sections, tools, skips = load()
-    errs = validate(sections, tools, skips)
+    errs = validate(sections, tools, skips) + validate_ignore(load_ignore())
     for e in errs:
         print("error:", e)
     if errs:
