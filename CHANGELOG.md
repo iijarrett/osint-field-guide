@@ -3,6 +3,13 @@
 Notable changes to the guide. Newest first. Tool-level changes (a tool added, dropped or re-rated) are recorded here;
 routine review-date updates are not.
 
+## 0.4.0, 2026-11-26
+
+- Added `docs/tools.json` and `scripts/build_tools_json.py`: every one of the guide's 87 tools as data, with section,
+  tier, kind, one-line summary, last-checked date, a link to its entry, and the pivot-map data types it is reachable
+  from. Entries in the gated tier are named but carry only name, section, tier and link, with no summary or other
+  detail; a test enforces that. CI checks the file is current.
+
 ## 0.3.0, 2026-11-25
 
 - Added the pivot map: `data/pivots.yml` (14 kinds of thing an investigator can hold, 55 pivots between them, each
